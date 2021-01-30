@@ -1,0 +1,3 @@
+[submodule "plateaupy/thirdparty/earcut-python"]
+	path = plateaupy/thirdparty/earcut-python
+	url = https://github.com/joshuaskelly/earcut-python.git
