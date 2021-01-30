@@ -1,4 +1,4 @@
-from plateaupy.plobj import plobj
+from plateaupy.plobj import plmesh, plobj
 from plateaupy.plutils import *
 from plateaupy.thirdparty.earcutpython.earcut.earcut import earcut
 import numpy as np
@@ -57,7 +57,7 @@ class plbldg(plobj):
 			for at in app.xpath('app:target', namespaces=root.nsmap):
 				uri = at.attrib['uri']
 				par.targets[uri] = np.array([str2floats(v).reshape((-1,2)) for v in at.xpath('app:TexCoordList/app:textureCoordinates', namespaces=root.nsmap)])
-			print(par.imageURI)
+			#print(par.imageURI)
 			partex.append(par)
 
 		# scan cityObjectMember
@@ -129,23 +129,14 @@ class plbldg(plobj):
 			self.buildings.append(b)
 		
 		# vertices, triangles
-		self.vertices = []
-		self.triangles = []
+		mesh = plmesh()
 		for b in self.buildings:
 			for plist in b.lod1Solid:
 				vertices = [ convertPolarToCartsian( *x ) for x in plist ]
 				res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
 				if len(res) > 0:
-					vstart = len(self.vertices)
-					self.vertices.extend( vertices )
-					self.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+					vstart = len(mesh.vertices)
+					mesh.vertices.extend( vertices )
+					mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+		self.meshes.append(mesh)
 
-	def save(self,filepath):
-		#compressed_pickle.save( filepath + '.pkl.bz2', self )
-		with open(filepath+'.pkl', mode='wb') as f:
-			pickle.dump( self, f)
-	def load(self,filepath):
-		#return compressed_pickle.load( filepath + '.pkl.bz2')	# compressed_pickle is too slow.
-		with open(filepath+'.pkl', mode='rb') as f:
-			return pickle.load( f )
-		return None

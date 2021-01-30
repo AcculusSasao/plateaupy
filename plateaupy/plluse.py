@@ -11,7 +11,3 @@ class plluse(plobj):
 			self.loadFile(filename)
 	def loadFile(self,filename):
 		pass
-	def save(self,filepath):
-		pass
-	def load(self,filepath):
-		return None

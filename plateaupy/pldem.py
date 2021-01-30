@@ -1,4 +1,4 @@
-from plateaupy.plobj import plobj
+from plateaupy.plobj import plobj,plmesh
 from plateaupy.plutils import *
 import numpy as np
 import copy
@@ -24,38 +24,23 @@ class pldem(plobj):
 				y[:] = convertPolarToCartsian(*y)
 		# to vertices and triangles
 		#   integrate vertices that are coincident.
-		self.vertices = []
-		self.triangles = np.zeros( (posLists.shape[0], 3), dtype=np.int )
+		mesh = plmesh()
+		mesh.triangles = np.zeros( (posLists.shape[0], 3), dtype=np.int )
 		for xidx,x in enumerate(posLists):
 			for yidx,y in enumerate(x[:3]):
 				newid = -1
 				num = xidx
 				if num > num_search_coincident:
 					num = num_search_coincident
-				for _id, vvv in enumerate( self.vertices[xidx-num:] ):
+				for _id, vvv in enumerate( mesh.vertices[xidx-num:] ):
 					if vvv[0]==y[0] and vvv[1]==y[1] and vvv[2]==y[2]:
 						newid = _id + xidx - num
 						break
 				if newid < 0:
-					newid = len(self.vertices)
-					self.vertices.append(y)
-				self.triangles[xidx,yidx] = newid
-	
-	def save(self,filepath):
-		np.savez_compressed(filepath, \
-			location=self.location,lowerCorner=self.lowerCorner,upperCorner=self.upperCorner, \
-			vertices=self.vertices,triangles=self.triangles, \
-			posLists=self.posLists
-			)
-	def load(self,filepath):
-		data = np.load( filepath + '.npz' )
-		self.location = int(data['location'])
-		self.lowerCorner = data['lowerCorner']
-		self.upperCorner = data['upperCorner']
-		self.vertices = data['vertices']
-		self.triangles = data['triangles']
-		self.posLists = data['posLists']
-		return None
+					newid = len(mesh.vertices)
+					mesh.vertices.append(y)
+				mesh.triangles[xidx,yidx] = newid
+		self.meshes.append(mesh)
 	
 	'''
 	def getPosListsTable(self):

@@ -1,8 +1,8 @@
 numpy
 argparse
 lxml
-open3d >= 0.9.0.0
 
+#open3d >= 0.9.0.0
 #scipy
 #opencv-python
 #triangle

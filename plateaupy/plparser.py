@@ -10,9 +10,6 @@ from plateaupy.plluse import plluse
 from plateaupy.pltran import pltran
 from plateaupy.plutils import *
 
-# (!TBD!) road height [in meter] offset in loading, because the height values in .gml are always zero.
-temporary_road_height_offset = 20
-
 class plparser:
 	def __init__(self, paths=None):
 		# filenames
@@ -123,17 +120,23 @@ class plparser:
 			print('# dem')
 			for f in filenames_dem:
 				obj = pldem()
-				obj.load(plobj.getCacheFilename(cachedir,f))
+				res = obj.load(plobj.getCacheFilename(cachedir,f))
+				if res is not None:
+					obj = res
 				self.dem[obj.location] = obj
 			print('# luse')
 			for f in filenames_luse:
 				obj = plluse()
-				obj.load(plobj.getCacheFilename(cachedir,f))
+				res = obj.load(plobj.getCacheFilename(cachedir,f))
+				if res is not None:
+					obj = res
 				self.luse[obj.location] = obj
 			print('# tran')
 			for f in filenames_tran:
 				obj = pltran()
-				obj.load(plobj.getCacheFilename(cachedir,f))
+				res = obj.load(plobj.getCacheFilename(cachedir,f))
+				if res is not None:
+					obj = res
 				self.tran[obj.location] = obj
 		else:
 			print('### loading GML data..')
@@ -159,25 +162,15 @@ class plparser:
 				self.tran[obj.location] = obj
 				obj.save(plobj.getCacheFilename(cachedir,f))
 
-	def getMeshes(self, color=None):
+	def get_Open3D_TriangleMesh(self, color=None):
 		meshes = []
-		if False:
-			# 1 by 1
-			for obj in self.bldg.values():
-				meshes.extend( obj.getMeshes(color=color) )
-		else:
-			# integration by location
-			for location in self.locations:
-				objs = []
-				for key,value in self.bldg.items():
-					if int(key//100)==location:
-						objs.append(value)
-				meshes.extend( plobj.getIntegratedMesh( objs, color=color ) )
+		for obj in self.bldg.values():
+			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
 		for obj in self.dem.values():
-			meshes.extend( obj.getMeshes(color=color) )
+			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
 		for obj in self.luse.values():
-			meshes.extend( obj.getMeshes(color=color) )
+			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
 		for obj in self.tran.values():
-			meshes.extend( obj.getMeshes(color=color) )
+			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
 		return meshes
 

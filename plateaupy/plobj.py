@@ -3,6 +3,28 @@ import numpy as np
 from lxml import etree
 import open3d as o3d
 from plateaupy.plutils import *
+import pickle
+
+class plmesh:
+	def __init__(self) -> None:
+		self.vertices = []	# [ num_of_vertices,  3 ]  (float)
+		self.triangles = []	# [ num_of_triangles, 3 ]  (int)
+		self.texture_filename = None
+		self.triangle_uvs = []			# [ 3 * num_of_triangles, 2 ]  (float)
+		self.triangle_material_ids = []	# [ num_of_triangles ]  (int)
+	
+	def to_Open3D_TriangleMesh(self,color=None):
+		mesh = o3d.geometry.TriangleMesh()
+		mesh.vertices = o3d.utility.Vector3dVector( self.vertices )
+		mesh.triangles = o3d.utility.Vector3iVector( self.triangles )
+		if self.texture_filename is not None:
+			mesh.textures = [o3d.io.read_image( self.texture_filename )]
+			mesh.triangle_uvs = o3d.utility.Vector2dVector( self.triangle_uvs )
+			mesh.triangle_material_ids = o3d.utility.IntVector( self.triangle_material_ids )
+		elif color is not None:
+			mesh.paint_uniform_color( color )
+		mesh.compute_vertex_normals()
+		return mesh
 
 class plobj:
 	# kind
@@ -22,20 +44,18 @@ class plobj:
 		return cachedir + '/' + os.path.splitext(os.path.basename(filename))[0]
 
 	def __init__(self):
+		self.filename = None
 		self.location = 0	# location number
 		self.lowerCorner = np.zeros((3))	# lowerCorner (lon,lat,height)
 		self.upperCorner = np.zeros((3))	# upperCorner
-		self.vertices = None	# list of vertices  : [*,3] 
-		self.triangles = None	# list of triangles : [*,3] (int)
+		self.meshes = []	# list of plmesh
 
 	def loadFile(self,filename):
 		print('load', filename)
+		self.filename = filename
 		self.location = self.getLocationFromFilename(filename)
-		#print(self.location)
 		tree = etree.parse(filename)
 		root = tree.getroot()
-		#print(root.tag)
-		#print(root.attrib)
 		# lowerCorner, upperCorner
 		vals = tree.xpath('/core:CityModel/gml:boundedBy/gml:Envelope/gml:lowerCorner', namespaces=root.nsmap)
 		if len(vals) > 0:
@@ -45,47 +65,20 @@ class plobj:
 			self.upperCorner = str2floats(vals[0])
 		return tree, root
 
-	def getMeshes(self,color=None,vertices=None,triangles=None,div=10000000):
-		if vertices is None:
-			vertices = self.vertices
-		if triangles is None:
-			triangles = self.triangles
-			if triangles is None:
-				return []
-		num = len(triangles)
-		meshes = []
-		for idx0 in range(0,num,div):
-			mesh = o3d.geometry.TriangleMesh()
-			mesh.vertices = o3d.utility.Vector3dVector( vertices )
-
-			idx1 = idx0 + div
-			if idx1 > num:
-				idx1 = num
-			mesh.triangles = o3d.utility.Vector3iVector( triangles[idx0:idx1] )
-			_color = color
-			if _color is None:
-				_color = np.random.rand(3)
-			mesh.paint_uniform_color( _color )
-			mesh.compute_triangle_normals()
-			mesh.compute_vertex_normals()
-			meshes.append(mesh)
-		return meshes
-
-	@classmethod
-	def getIntegratedMesh(cls,objs,color=None):
-		vertices  = []
-		triangles = []
-		for obj in objs:
-			triangles.extend( list(np.array(obj.triangles,dtype=np.int) + len(vertices)) )
-			vertices.extend( obj.vertices )
-
-		mesh = o3d.geometry.TriangleMesh()
-		mesh.vertices = o3d.utility.Vector3dVector( vertices )
-		mesh.triangles = o3d.utility.Vector3iVector( triangles )
+	def get_Open3D_TriangleMesh(self,color=None):
 		_color = color
 		if _color is None:
 			_color = np.random.rand(3)
-		mesh.paint_uniform_color( _color )
-		mesh.compute_triangle_normals()
-		mesh.compute_vertex_normals()
-		return [mesh]
+		return [ m.to_Open3D_TriangleMesh(_color) for m in self.meshes ]
+	
+	def save(self,filepath):
+		with open(filepath+'.pkl', mode='wb') as f:
+			pickle.dump( self, f)
+	def load(self,filepath):
+		try:
+			with open(filepath+'.pkl', mode='rb') as f:
+				return pickle.load( f )
+		except FileNotFoundError as e:
+			print(e)
+		return None
+
