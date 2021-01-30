@@ -2,6 +2,7 @@ import os
 import numpy as np
 from lxml import etree
 import open3d as o3d
+from plateaupy.plutils import *
 
 class plobj:
 	# kind

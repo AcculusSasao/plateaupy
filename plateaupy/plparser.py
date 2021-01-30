@@ -3,26 +3,15 @@ import numpy as np
 import glob
 from lxml import etree
 import open3d as o3d
-from plateaupy import plobj
+from plateaupy.plobj import plobj
+from plateaupy.plbldg import plbldg
+from plateaupy.pldem import pldem
+from plateaupy.plluse import plluse
+from plateaupy.pltran import pltran
 from plateaupy.plutils import *
 
 # (!TBD!) road height [in meter] offset in loading, because the height values in .gml are always zero.
 temporary_road_height_offset = 20
-
-#def _discrete(x):
-#	_c = 1000
-#	return int(x * _c)
-
-def convertByTbl( lon, lat, hei, tbl ):
-	if _discrete(lon) in tbl:
-		if _discrete(lat) in tbl[_discrete(lon)]:
-			#print(tbl[_discrete(lon)][_discrete(lat)])
-			return lon,lat,tbl[_discrete(lon)][_discrete(lat)]
-	#print('no data', lon, ', ', lat)
-	return lon,lat,hei
-
-def convertByTblDummy( lon, lat, hei, tbl ):
-	return lon,lat,hei
 
 class plparser:
 	def __init__(self, paths=None):

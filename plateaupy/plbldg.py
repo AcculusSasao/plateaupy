@@ -1,7 +1,9 @@
-from plateaupy import plobj
+from plateaupy.plobj import plobj
 from plateaupy.plutils import *
+from plateaupy.thirdparty.earcutpython.earcut.earcut import earcut
 import numpy as np
 import copy
+import pickle
 from lxml import etree
 
 class Building:
@@ -132,7 +134,7 @@ class plbldg(plobj):
 		for b in self.buildings:
 			for plist in b.lod1Solid:
 				vertices = [ convertPolarToCartsian( *x ) for x in plist ]
-				res = earcut.earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
+				res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
 				if len(res) > 0:
 					vstart = len(self.vertices)
 					self.vertices.extend( vertices )

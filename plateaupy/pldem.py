@@ -1,4 +1,4 @@
-from plateaupy import plobj
+from plateaupy.plobj import plobj
 from plateaupy.plutils import *
 import numpy as np
 import copy
@@ -57,6 +57,7 @@ class pldem(plobj):
 		self.posLists = data['posLists']
 		return None
 	
+	'''
 	def getPosListsTable(self):
 		# create 2D table [lon,lat] to get height
 		_posLists = self.posLists[:,:3].reshape( (-1,3) )
@@ -72,3 +73,4 @@ class pldem(plobj):
 				tbl[_discrete(p[0])] = dict()
 				tbl[_discrete(p[0])][_discrete(p[1])] = p[2]
 		return tbl
+	'''

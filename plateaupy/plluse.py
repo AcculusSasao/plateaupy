@@ -1,4 +1,4 @@
-from plateaupy import plobj
+from plateaupy.plobj import plobj
 from plateaupy.plutils import *
 import numpy as np
 import copy
