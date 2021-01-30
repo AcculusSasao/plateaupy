@@ -1,3 +1,4 @@
+from numpy.lib.polynomial import poly
 from plateaupy.plobj import plmesh, plobj
 from plateaupy.plutils import *
 from plateaupy.thirdparty.earcutpython.earcut.earcut import earcut
@@ -17,13 +18,16 @@ class Building:
 		self.address = None
 		self.buildingDetails = dict()
 		self.extendedAttribute = dict()
+
 		self.lod0RoofEdge = []
 		self.lod1Solid = []
+
 		#self.lod2Solid = []
 		# lod2MultiSurface
 		self.lod2ground = dict()
 		self.lod2roof = dict()
 		self.lod2wall = dict()
+		self.partex = appParameterizedTexture()
 	def __str__(self):
 		return 'Building id={}\n\
 usage={}, measuredHeight={}, storeysAboveGround={}, storeysBelowGround={}\n\
@@ -36,8 +40,14 @@ attr={}'\
 
 class appParameterizedTexture:
 	def __init__(self):
-		self.imageURI = ''
+		self.imageURI = None
 		self.targets = dict()
+	@classmethod
+	def search_list(cls, applist, polyid):
+		for app in applist:
+			if polyid in app.targets.keys():
+				return app
+		return None
 
 class plbldg(plobj):
 	def __init__(self,filename=None):
@@ -48,6 +58,7 @@ class plbldg(plobj):
 
 	def loadFile(self,filename,dem=None):
 		tree, root = super().loadFile(filename)
+
 		# scan appearanceMember
 		partex = []
 		for app in tree.xpath('/core:CityModel/app:appearanceMember/app:Appearance/app:surfaceDataMember/app:ParameterizedTexture', namespaces=root.nsmap):
@@ -57,7 +68,6 @@ class plbldg(plobj):
 			for at in app.xpath('app:target', namespaces=root.nsmap):
 				uri = at.attrib['uri']
 				par.targets[uri] = np.array([str2floats(v).reshape((-1,2)) for v in at.xpath('app:TexCoordList/app:textureCoordinates', namespaces=root.nsmap)])
-			#print(par.imageURI)
 			partex.append(par)
 
 		# scan cityObjectMember
@@ -110,33 +120,79 @@ class plbldg(plobj):
 			b.lod1Solid = [str2floats(v).reshape((-1,3)) for v in vals]
 			# lod2Solid
 			#  nothing to do for parsing <bldg:lod2Solid>
-			# lod2MultiSurface
-			for bb in bld.xpath('bldg:boundedBy/bldg:GroundSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing', namespaces=root.nsmap):
-				polyid = bb.attrib['{'+root.nsmap['gml']+'}id']
-				vals = bb.xpath('gml:posList', namespaces=root.nsmap)
+			# lod2MultiSurface : Ground, Roof, Wall
+			for bb in bld.xpath('bldg:boundedBy/bldg:GroundSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=root.nsmap):
+				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
+				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
 				b.lod2ground[polyid] = surf
-			for bb in bld.xpath('bldg:boundedBy/bldg:RoofSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing', namespaces=root.nsmap):
-				polyid = bb.attrib['{'+root.nsmap['gml']+'}id']
-				vals = bb.xpath('gml:posList', namespaces=root.nsmap)
+				app = appParameterizedTexture.search_list( partex, polyid )
+				if app is not None:
+					if b.partex.imageURI is None:
+						b.partex = app
+					#elif b.partex.imageURI != app.imageURI:
+					#	print('error')
+			for bb in bld.xpath('bldg:boundedBy/bldg:RoofSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=root.nsmap):
+				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
+				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
 				b.lod2roof[polyid] = surf
-			for bb in bld.xpath('bldg:boundedBy/bldg:WallSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing', namespaces=root.nsmap):
-				polyid = bb.attrib['{'+root.nsmap['gml']+'}id']
-				vals = bb.xpath('gml:posList', namespaces=root.nsmap)
+				app = appParameterizedTexture.search_list( partex, polyid )
+				if app is not None:
+					if b.partex.imageURI is None:
+						b.partex = app
+					#elif b.partex.imageURI != app.imageURI:
+					#	print('error')
+			for bb in bld.xpath('bldg:boundedBy/bldg:WallSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=root.nsmap):
+				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
+				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
 				b.lod2wall[polyid] = surf
+				app = appParameterizedTexture.search_list( partex, polyid )
+				if app is not None:
+					if b.partex.imageURI is None:
+						b.partex = app
+					#elif b.partex.imageURI != app.imageURI:
+					#	print('error')
 			self.buildings.append(b)
 		
 		# vertices, triangles
 		mesh = plmesh()
 		for b in self.buildings:
-			for plist in b.lod1Solid:
-				vertices = [ convertPolarToCartsian( *x ) for x in plist ]
-				res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
-				if len(res) > 0:
-					vstart = len(mesh.vertices)
-					mesh.vertices.extend( vertices )
-					mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+			if b.lod2ground or b.lod2roof or b.lod2wall:
+				# LOD2
+				# ground
+				for key, value in b.lod2ground.items():
+					vertices = [ convertPolarToCartsian( *x ) for x in value[0] ]
+					res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
+					if len(res) > 0:
+						vstart = len(mesh.vertices)
+						mesh.vertices.extend( vertices )
+						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+				# roof
+				for key, value in b.lod2roof.items():
+					vertices = [ convertPolarToCartsian( *x ) for x in value[0] ]
+					res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
+					if len(res) > 0:
+						vstart = len(mesh.vertices)
+						mesh.vertices.extend( vertices )
+						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+				# wall
+				for key, value in b.lod2wall.items():
+					vertices = [ convertPolarToCartsian( *x ) for x in value[0] ]
+					res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
+					if len(res) > 0:
+						vstart = len(mesh.vertices)
+						mesh.vertices.extend( vertices )
+						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+			else:
+				# LOD1
+				for plist in b.lod1Solid:
+					vertices = [ convertPolarToCartsian( *x ) for x in plist ]
+					res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
+					if len(res) > 0:
+						vstart = len(mesh.vertices)
+						mesh.vertices.extend( vertices )
+						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
 		self.meshes.append(mesh)
 
