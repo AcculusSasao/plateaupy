@@ -45,6 +45,9 @@ bgcolor = args.bgcolor
 vis = o3d.visualization.VisualizerWithKeyCallback()
 vis.create_window(window_name=window_name, width=width, height=height)
 vis.get_render_option().background_color = np.asarray(bgcolor)
+vis.get_render_option().mesh_show_back_face = True
+vis.get_render_option().mesh_show_wireframe = True
+vis.get_render_option().show_coordinate_frame = True
 meshes = pl.get_Open3D_TriangleMesh(color=args.color)
 for mesh in meshes:
 	vis.add_geometry(mesh)
