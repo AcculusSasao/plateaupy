@@ -16,6 +16,7 @@ parser.add_argument('-c','--cache',action='store_true', help='use cache data')
 parser.add_argument('-cpath','--cachepath',help='cache directory name',default='cached',type=str)
 parser.add_argument('-color','--color',help='color',default=None,type=float,nargs=3)
 parser.add_argument('-bgcolor','--bgcolor',help='background color',default=[1,1,1],type=float,nargs=3)
+parser.add_argument('-lod2texture','--lod2texture',action='store_true', help='show LOD2 texture images (too slow).')
 args = parser.parse_args()
 
 # scan paths
@@ -27,7 +28,7 @@ if args.cmd == 'locations':
 	sys.exit(0)
 
 # load
-pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location )
+pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location, bUseLOD2texture=args.lod2texture )
 
 # special commands
 if args.cmd == 'dumpmeta':

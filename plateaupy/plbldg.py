@@ -5,6 +5,9 @@ from plateaupy.thirdparty.earcutpython.earcut.earcut import earcut
 import numpy as np
 import copy
 import pickle
+import sys
+import os
+import cv2
 from lxml import etree
 
 class Building:
@@ -50,13 +53,13 @@ class appParameterizedTexture:
 		return None
 
 class plbldg(plobj):
-	def __init__(self,filename=None):
+	def __init__(self,filename=None, bUseLOD2texture=False, texturedir='cached'):
 		super().__init__()
 		self.buildings = []	# list of Building
 		if filename is not None:
-			self.loadFile(filename)
+			self.loadFile(filename, bUseLOD2texture=bUseLOD2texture, texturedir=texturedir)
 
-	def loadFile(self,filename,dem=None):
+	def loadFile(self,filename, bUseLOD2texture=False, texturedir='cached'):
 		tree, root = super().loadFile(filename)
 
 		# scan appearanceMember
@@ -157,10 +160,20 @@ class plbldg(plobj):
 			self.buildings.append(b)
 		
 		# vertices, triangles
-		mesh = plmesh()
+		if not bUseLOD2texture:
+			mesh = plmesh()
 		for b in self.buildings:
+			if bUseLOD2texture:
+				mesh = plmesh()
 			if b.lod2ground or b.lod2roof or b.lod2wall:
 				# LOD2
+				if bUseLOD2texture:
+					if b.partex.imageURI is not None:
+						# convert .tif into .png, because o3d.io.read_image() fails.
+						mesh.texture_filename = os.path.dirname( self.filename ) + '/' + b.partex.imageURI
+						img = cv2.imread(mesh.texture_filename)
+						mesh.texture_filename = texturedir + '/' + os.path.basename( mesh.texture_filename ) + '.png'
+						cv2.imwrite(mesh.texture_filename,img)
 				# ground
 				for key, value in b.lod2ground.items():
 					vertices = [ convertPolarToCartsian( *x ) for x in value[0] ]
@@ -168,7 +181,16 @@ class plbldg(plobj):
 					if len(res) > 0:
 						vstart = len(mesh.vertices)
 						mesh.vertices.extend( vertices )
-						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+						triangles = np.array(res).reshape((-1,3))
+						mesh.triangles.extend( triangles + vstart )
+						# texture
+						if bUseLOD2texture:
+							if key in b.partex.targets.keys():
+								mesh.triangle_uvs.extend( [ b.partex.targets[key][0,x] for x in triangles.reshape((-1)) ] )
+								mesh.triangle_material_ids.extend( [0]*len(triangles) )
+							else:	# add dummy uvs, material_ids    (The texture can not appear if the numbers of triangles are different between triangles and them.)
+								mesh.triangle_uvs.extend( [ np.zeros((2)) for x in range(len(triangles)*3) ] )
+								mesh.triangle_material_ids.extend( [0]*len(triangles) )
 				# roof
 				for key, value in b.lod2roof.items():
 					vertices = [ convertPolarToCartsian( *x ) for x in value[0] ]
@@ -176,7 +198,13 @@ class plbldg(plobj):
 					if len(res) > 0:
 						vstart = len(mesh.vertices)
 						mesh.vertices.extend( vertices )
-						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+						triangles = np.array(res).reshape((-1,3))
+						mesh.triangles.extend( triangles + vstart )
+						# texture
+						if bUseLOD2texture:
+							if key in b.partex.targets.keys():
+								mesh.triangle_uvs.extend( [ b.partex.targets[key][0,x] for x in triangles.reshape((-1)) ] )
+								mesh.triangle_material_ids.extend( [0]*len(triangles) )
 				# wall
 				for key, value in b.lod2wall.items():
 					vertices = [ convertPolarToCartsian( *x ) for x in value[0] ]
@@ -184,7 +212,13 @@ class plbldg(plobj):
 					if len(res) > 0:
 						vstart = len(mesh.vertices)
 						mesh.vertices.extend( vertices )
-						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
+						triangles = np.array(res).reshape((-1,3))
+						mesh.triangles.extend( triangles + vstart )
+						# texture
+						if bUseLOD2texture:
+							if key in b.partex.targets.keys():
+								mesh.triangle_uvs.extend( [ b.partex.targets[key][0,x] for x in triangles.reshape((-1)) ] )
+								mesh.triangle_material_ids.extend( [0]*len(triangles) )
 			else:
 				# LOD1
 				for plist in b.lod1Solid:
@@ -193,6 +227,14 @@ class plbldg(plobj):
 					if len(res) > 0:
 						vstart = len(mesh.vertices)
 						mesh.vertices.extend( vertices )
-						mesh.triangles.extend( np.array(res).reshape((-1,3)) + vstart )
-		self.meshes.append(mesh)
+						triangles = np.array(res).reshape((-1,3))
+						mesh.triangles.extend( triangles + vstart )
+						# texture
+						if bUseLOD2texture:	# add dummy uvs, material_ids    (The texture can not appear if the numbers of triangles are different between triangles and them.)
+							mesh.triangle_uvs.extend( [ np.zeros((2)) for x in range(len(triangles)*3) ] )
+							mesh.triangle_material_ids.extend( [0]*len(triangles) )
+			if bUseLOD2texture:
+				self.meshes.append(mesh)
+		if not bUseLOD2texture:
+			self.meshes.append(mesh)
 

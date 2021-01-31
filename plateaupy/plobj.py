@@ -19,8 +19,11 @@ class plmesh:
 		mesh.triangles = o3d.utility.Vector3iVector( self.triangles )
 		if self.texture_filename is not None:
 			mesh.textures = [o3d.io.read_image( self.texture_filename )]
-			mesh.triangle_uvs = o3d.utility.Vector2dVector( self.triangle_uvs )
-			mesh.triangle_material_ids = o3d.utility.IntVector( self.triangle_material_ids )
+			mesh.triangle_uvs = o3d.utility.Vector2dVector( np.array(self.triangle_uvs) )
+			mesh.triangle_material_ids = o3d.utility.IntVector( np.array(self.triangle_material_ids, dtype=np.int32) )
+			print( 'triangles = ', np.array(self.triangles).shape )
+			print( 'triangle_uvs = ', np.array(self.triangle_uvs).shape )
+			print( 'triangle_material_ids = ', np.array(self.triangle_material_ids).shape )
 		elif color is not None:
 			mesh.paint_uniform_color( color )
 		mesh.compute_vertex_normals()

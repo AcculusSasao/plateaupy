@@ -61,7 +61,7 @@ class plparser:
 	@param kind:		specify the type of gml, plobj.ALL, plobj.BLDG,..
 	@param location:	specify which gml data in the type are loaded, -1:all, <1000:array index, >=1000:location
 	'''
-	def loadFiles(self, bLoadCache=False, cachedir='cached', kind=None, location=-1):
+	def loadFiles(self, bLoadCache=False, cachedir='cached', kind=None, location=-1, bUseLOD2texture=False):
 		if kind is None:
 			kind = plobj.ALL
 		if cachedir is not None:
@@ -142,7 +142,7 @@ class plparser:
 			print('### loading GML data..')
 			print('# bldg')
 			for f in filenames_bldg:
-				obj = plbldg(f)
+				obj = plbldg(f, bUseLOD2texture=bUseLOD2texture, texturedir=cachedir)
 				self.bldg[obj.location] = obj
 				obj.save(plobj.getCacheFilename(cachedir,f))
 			print('# dem')
