@@ -1,9 +1,15 @@
 import math
 import numpy as np
+import random
+import string
 
 def printMethods(obj):
 	for x in dir(obj):
 		print( x, ':', type(eval("obj."+x)) )
+
+def randomname(n):
+	randlst = [random.choice(string.ascii_letters + string.digits) for i in range(n)]
+	return ''.join(randlst)
 
 def str2floats(x):
 	return np.array([float(i) for i in x.text.split(' ')])

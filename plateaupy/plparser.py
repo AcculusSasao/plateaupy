@@ -2,7 +2,6 @@ import os
 import numpy as np
 import glob
 from lxml import etree
-import open3d as o3d
 from plateaupy.plobj import plobj
 from plateaupy.plbldg import plbldg
 from plateaupy.pldem import pldem
@@ -174,3 +173,23 @@ class plparser:
 			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
 		return meshes
 
+	def show_Blender_Objects(self, vbase=None):
+		import bpy
+		scene = bpy.context.scene
+		for obj in self.bldg.values():
+			_obj = obj.get_Blender_Objects(vbase=vbase)
+			for _o in _obj:
+				scene.collection.objects.link(_o)
+		for obj in self.dem.values():
+			_obj = obj.get_Blender_Objects(vbase=vbase)
+			for _o in _obj:
+				scene.collection.objects.link(_o)
+		for obj in self.luse.values():
+			_obj = obj.get_Blender_Objects(vbase=vbase)
+			for _o in _obj:
+				scene.collection.objects.link(_o)
+		for obj in self.tran.values():
+			_obj = obj.get_Blender_Objects(vbase=vbase)
+			for _o in _obj:
+				scene.collection.objects.link(_o)
+		bpy.context.view_layer.update()
