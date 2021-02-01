@@ -1,0 +1,102 @@
+# plateaupy
+[PLATEAU(CityGML)](https://www.mlit.go.jp/plateau/)のPython版パーサおよびビューア用モジュールです。  
+3D表示は[Open3D](http://www.open3d.org/)または[Blender Python (bpy)](https://docs.blender.org/api/current/index.html)で行います。  
+
+## はじめに
+本ソフトウェアは、[東京23区から新しい世界を創るアイデアソン／ハッカソン](https://asciistartup.connpass.com/event/198420/)で開発されたものです。  
+開発チーム： ***チーム７（チーム名・影の功労者，３名）***  
+どなたでも使用・開発参加できます。
+
+対応項目  
+* bldg(建物)のLOD1,LOD2のパース、表示、LOD2テクスチャ表示(遅い)、メタデータのパース
+* dem(地表)のパース、表示
+* tran(道路)のパース、表示
+* Open3D TriangleMesh への変換
+* Blender Object への変換
+
+未対応  
+* luse(建設予定値)のパース、表示
+* codelists定義 (CityGML_01/13100/codelists) のパース
+
+## 動作環境
+Python3 (3.6.4で確認)
+
+## インストール
+取得
+>git clone -recursive https://github.com/AcculusSasao/plateaupy.git  
+
+モジュールインストール
+
+>cd plateaupy  
+>pip install -r requirements.txt  
+
+[Open3D v0.11.2](https://github.com/intel-isl/Open3D/releases/tag/v0.11.2) を取得しインストールしてください。  
+>pip install open3d-0.11.2-***.whl
+  
+## PLATEAU(CityGML)データ
+使用データ・今回は東京23区 CityGML_01.zip, CityGML_02.zip をダウンロードして展開します。  
+3ディレクトリを並べて配置します。(違っていてもオプションでパスを指定可能。シンボリックリンクでも良い)  
+-- CityGML_01  
+-- CityGML_02  
+-- plateaupy  
+
+## ビューアアプリ appviewer の使い方
+1. 区画番号一覧を表示します。  
+>python appviewer.py -cmd locations  
+
+以下が表示されます。CityGMLへのパスが誤っていると異なります。パスはコマンド引数 -paths で指定することも可能です。  
+
+>locations:  [533925, 533926, 533934, 533935, 533936, 533937, 533944, 533945, 533946, 533947, 533954, 533955, 533956, 533957]  
+  
+  
+2. 区画番号 533925 の、建物(bldg)・道路(tran)・地面(dem) を表示します。-locを指定しなければ全区画を対象としますが時間がかかります。  
+
+>python appviewer.py -loc 533925  
+
+読み込みにしばらく時間がかかります。  
+成功するとOpen3Dの3D画面が起動し、マウス操作できます。ESCキーで終了します。  
+
+
+3. 一度読み込んだデータはキャッシュファイルに保存し、次回以降はコマンドオプション -c を使用することで高速に起動します。  
+
+>python appviewer.py -loc 533925 -c  
+
+4. オプション -k で、gml種類 0:bldg, 1:dem, 2:luse, 3:tran を指定できます。  
+
+>python appviewer.py -loc 533925 -c -k 0  
+
+5. オプション -lod2texture でLOD2のテクスチャを表示します。ただし動作が非常に遅いため場所を限定したほうが良いです。  
+
+>python appviewer.py -paths ../CityGML_02 -k 0 -loc 53392633 -lod2texture
+
+6. コマンドdumpmetaで、bldg内のメタデータを表示します。  
+
+>python appviewer.py -loc 533925 -c -cmd dumpmeta  
+
+## plateaupy の説明
+TBD
+* 取得したメッシュデータは、plyファイル等に保存することもできる
+> o3d.io.write_triangle_mesh('hoge.ply', mesh)
+
+## Blender-Python
+
+
+## 課題
+
+既知の不具合・課題
+1. 緯度経度->直交座標変換が、おそらく正確ではない  plutils.py 内 convertPolarToCartsian()
+2. 1.と関係するかもしれないが、おそらく、建物・地面・道路の位置が微妙にずれている。
+3. 建物のポリゴンの法線方向が逆のものがあり、建物の壁が表示されないものがある。
+4. 道路(tran)の位置情報は高さが全てゼロで、地面(dem)の情報を引っ張ってこなければならない。
+
+あると良さそうなもの
+1. 衛星画像をテクスチャとして地面に貼り付ける
+2. 動作高速化 (ポリゴン読み込みコードの最適化、ポリゴン数の削減など)
+3. [東京公共交通オープンデータ](https://tokyochallenge.odpt.org/)APIの利用
+
+## ライセンス
+[MITライセンス](LICENSE.txt)  
+使用している外部モジュールは各々のライセンスに従ってください。  
+  
+earcut-python  
+https://github.com/joshuaskelly/earcut-python  
