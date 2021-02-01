@@ -7,6 +7,7 @@ from lxml import etree
 class plluse(plobj):
 	def __init__(self,filename=None):
 		super().__init__()
+		self.kindstr = 'luse'
 		if filename is not None:
 			self.loadFile(filename)
 	def loadFile(self,filename):

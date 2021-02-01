@@ -172,6 +172,16 @@ class plparser:
 		for obj in self.tran.values():
 			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
 		return meshes
+	
+	def write_Open3D_ply_files(self, savepath, color=None):
+		for obj in self.bldg.values():
+			obj.write_Open3D_ply_files( savepath=savepath, color=color )
+		for obj in self.dem.values():
+			obj.write_Open3D_ply_files( savepath=savepath, color=color )
+		for obj in self.luse.values():
+			obj.write_Open3D_ply_files( savepath=savepath, color=color )
+		for obj in self.tran.values():
+			obj.write_Open3D_ply_files( savepath=savepath, color=color )
 
 	def show_Blender_Objects(self, vbase=None):
 		import bpy

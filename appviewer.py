@@ -17,6 +17,7 @@ parser.add_argument('-cpath','--cachepath',help='cache directory name',default='
 parser.add_argument('-color','--color',help='color',default=None,type=float,nargs=3)
 parser.add_argument('-bgcolor','--bgcolor',help='background color',default=[1,1,1],type=float,nargs=3)
 parser.add_argument('-lod2texture','--lod2texture',action='store_true', help='show LOD2 texture images (too slow).')
+parser.add_argument('-plypath','--path_write_ply_files',help='path to write plyfiles',default=None,type=str)
 args = parser.parse_args()
 
 # scan paths
@@ -36,6 +37,12 @@ if args.cmd == 'dumpmeta':
 		for building in obj.buildings:
 			print(building,'\n')
 	sys.exit(0)
+
+# write ply files
+if args.path_write_ply_files is not None:
+	print('writing ply files into', args.path_write_ply_files)
+	os.makedirs( args.path_write_ply_files, exist_ok=True )
+	pl.write_Open3D_ply_files(savepath=args.path_write_ply_files, color=args.color)
 
 # show by Open3D
 print('presenting..')

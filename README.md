@@ -7,12 +7,13 @@
 開発チーム： ***チーム７（チーム名・影の功労者，３名）***  
 どなたでも使用・開発参加できます。
 
-対応項目  
+機能一覧  
 * bldg(建物)のLOD1,LOD2のパース、表示、LOD2テクスチャ表示(遅い)、メタデータのパース
 * dem(地表)のパース、表示
 * tran(道路)のパース、表示
 * Open3D TriangleMesh への変換
 * Blender Object への変換
+* .plyファイルへの出力
 
 未対応  
 * luse(建設予定値)のパース、表示
@@ -69,24 +70,50 @@ Python3 (3.6.4で確認)
 
 >python appviewer.py -paths ../CityGML_02 -k 0 -loc 53392633 -lod2texture
 
-6. コマンドdumpmetaで、bldg内のメタデータを表示します。  
+6. オプション -plypath [ディレクトリ] で、[ディレクトリ]に .ply ファイルを保存します。
+>python appviewer.py -loc 533925 -c -plypath tmp
+
+7. コマンドdumpmetaで、bldg内のメタデータを表示します。  
 
 >python appviewer.py -loc 533925 -c -cmd dumpmeta  
 
 ## plateaupy の説明
+
+>import plateaupy  
+>pl = plateaupy.plparser(paths=['../CityGML_01','../CityGML_02'])  
+
 TBD
-* 取得したメッシュデータは、plyファイル等に保存することもできる
-> o3d.io.write_triangle_mesh('hoge.ply', mesh)
 
 ## Blender-Python
 
+### Blender-Python インストール
+
+[blender/blendertest.sh](blender/blendertest.sh)を参考にしてください。  
+Blender 2.91.2 で確認しています。  
+Blender-Python(bpy)はBlender内のPythonで実行されるため、このPythonに必要モジュールをインストールする必要があります。  
+Blenderのインストールディレクトリを $BLENDER とすると、まずはpipと必要モジュールをインストールします。  
+
+>BLENDER_PYTHON=$BLENDER/2.91/python/bin/python3.7m  
+>$BLENDER_PYTHON -m ensurepip  
+>BLENDER_PIP=$BLENDER/2.91/python/bin/pip3  
+>$BLENDER_PIP install --upgrade pip  
+>$BLENDER_PIP install lxml open3d opencv-python  
+
+### Blender-Python 実行
+
+>$BLENDER/blender --python [blender/blendertest.py](blender/blendertest.py) --python-use-system-env
+
+内容は[blender/blendertest.py](blender/blendertest.py)を参考にしてください。  
+args を必要に応じて修正します。  
+またBlender表示時にオブジェクト座標をCityGMLのXYZ[meter]そのままだと見づらいため、  
+中心位置を vbase という変数に示す値に移動して、表示しています。  
 
 ## 課題
 
 既知の不具合・課題
 1. 緯度経度->直交座標変換が、おそらく正確ではない  plutils.py 内 convertPolarToCartsian()
 2. 1.と関係するかもしれないが、おそらく、建物・地面・道路の位置が微妙にずれている。
-3. 建物のポリゴンの法線方向が逆のものがあり、建物の壁が表示されないものがある。
+3. ~~建物のポリゴンの法線方向が逆のものがあり、建物の壁が表示されないものがある。~~
 4. 道路(tran)の位置情報は高さが全てゼロで、地面(dem)の情報を引っ張ってこなければならない。
 
 あると良さそうなもの
@@ -96,7 +123,7 @@ TBD
 
 ## ライセンス
 [MITライセンス](LICENSE.txt)  
-使用している外部モジュールは各々のライセンスに従ってください。  
   
-earcut-python  
+使用している外部モジュールは各々のライセンスに従ってください。  
+* earcut-python  
 https://github.com/joshuaskelly/earcut-python  

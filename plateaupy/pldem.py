@@ -7,6 +7,7 @@ from lxml import etree
 class pldem(plobj):
 	def __init__(self,filename=None):
 		super().__init__()
+		self.kindstr = 'dem'
 		self.posLists = None	# list of 'posList'(LinearRing) : [*,4,3]
 		if filename is not None:
 			self.loadFile(filename)

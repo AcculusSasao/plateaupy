@@ -55,6 +55,7 @@ class appParameterizedTexture:
 class plbldg(plobj):
 	def __init__(self,filename=None, bUseLOD2texture=False, texturedir='cached'):
 		super().__init__()
+		self.kindstr = 'bldg'
 		self.buildings = []	# list of Building
 		if filename is not None:
 			self.loadFile(filename, bUseLOD2texture=bUseLOD2texture, texturedir=texturedir)

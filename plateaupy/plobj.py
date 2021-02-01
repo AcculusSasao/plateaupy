@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from lxml import etree
+from numpy.lib.npyio import save
 from plateaupy.plutils import *
 import pickle
 
@@ -65,6 +66,7 @@ class plobj:
 		return cachedir + '/' + os.path.splitext(os.path.basename(filename))[0]
 
 	def __init__(self):
+		self.kindstr = 'obj'
 		self.filename = None
 		self.location = 0	# location number
 		self.lowerCorner = np.zeros((3))	# lowerCorner (lon,lat,height)
@@ -92,14 +94,23 @@ class plobj:
 			_color = np.random.rand(3)
 		return [ m.to_Open3D_TriangleMesh(_color) for m in self.meshes ]
 
+	def write_Open3D_ply_files(self, savepath, color=None):
+		import open3d as o3d
+
+		meshes = self.get_Open3D_TriangleMesh(color=color)
+		for idx,m in enumerate(meshes):
+			filename = savepath + '/' + str(self.location) + '_' + self.kindstr + '_' + str(idx) + '.ply'
+			o3d.io.write_triangle_mesh( filename, m)
+
 	def get_Blender_Objects(self, vbase=None):
-		rname = randomname(3)
+		rname = self.kindstr
 		return [ m.to_Blender_Object(meshname=str(self.location)+'_'+rname+'_'+str(idx),vbase=vbase) for idx,m in enumerate(self.meshes) ]
 
 	def get_center_vertices(self):
 		centers = np.array([ m.get_center_vertices() for m in self.meshes ])
 		return np.mean(centers, axis=0)
 
+	# cache save/load
 	def save(self,filepath):
 		with open(filepath+'.pkl', mode='wb') as f:
 			pickle.dump( self, f)

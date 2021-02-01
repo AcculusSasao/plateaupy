@@ -11,6 +11,7 @@ temporary_road_height_offset = 20
 class pltran(plobj):
 	def __init__(self,filename=None,dem=None):
 		super().__init__()
+		self.kindstr = 'tran'
 		self.posLists = None	# list of 'posList'(LinearRing)
 		if filename is not None:
 			self.loadFile(filename,dem)
