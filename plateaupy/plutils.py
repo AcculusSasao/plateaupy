@@ -113,13 +113,25 @@ class VerticesTransformer:
 			vv[:,1] *= self.aspectXY
 		return vv
 
+	def inv_transform(self, vv, normscale=1, normaspect=True ):
+		invrot = np.linalg.inv(self.rot)
+		v = copy.deepcopy(vv)
+		if normaspect:
+			v[:,1] /= self.aspectXY
+		if normscale is not None:
+			v /= (self.scaleX * normscale)
+		return v.dot( invrot ) + self.trans
+
+
 # create Open3D box 
 #  translation (numpy.ndarray[float64[3, 1]]) – A 3D vector to transform the geometry
-def createOpen3Dbox(size=1,translation=None, bLineSet=True):
+def createOpen3Dbox(size=1,translation=None, bLineSet=True, color=None):
 	import open3d as o3d
 	mesh = o3d.geometry.TriangleMesh.create_box(width=size,height=size,depth=size)
 	if translation is not None:
 		mesh.translate(translation,relative=False)
+	if color is not None:
+		mesh.paint_uniform_color( color )
 	mesh.compute_vertex_normals()
 	if bLineSet:
 		mesh = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)

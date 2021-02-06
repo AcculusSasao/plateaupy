@@ -25,6 +25,12 @@ if __name__ == '__main__':
 	# transform mesh.vertices into [0,1]
 	vt = plateaupy.plutils.VerticesTransformer( low, upp )
 	normvertices = vt.transform( mesh.vertices )
+
+	# test for inv_transform
+	if False:
+		normvertices = vt.inv_transform( normvertices )
+		normvertices = vt.transform( normvertices )
+
 	# replace it to show
 	mesh.vertices = normvertices
 
