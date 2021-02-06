@@ -30,10 +30,10 @@ class plparser:
 	def addPath(self,path):	# path to CityGML
 		print('search ' + path)
 		# now, static path
-		path_bldg = path + '/13100/udx/bldg'
-		path_dem  = path + '/13100/udx/dem'
-		path_luse = path + '/13100/udx/luse'
-		path_tran = path + '/13100/udx/tran'
+		path_bldg = path + '/13100*/udx/bldg'
+		path_dem  = path + '/13100*/udx/dem'
+		path_luse = path + '/13100*/udx/luse'
+		path_tran = path + '/13100*/udx/tran'
 		val = sorted(glob.glob(path_bldg+'/*.gml'))
 		print('  bldg : ',len(val), 'files')
 		self.filenames_bldg.extend( val )

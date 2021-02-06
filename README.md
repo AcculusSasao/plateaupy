@@ -1,11 +1,14 @@
 # plateaupy
+![plateaupy](doc/plateaupy.png)
+
 [PLATEAU(CityGML)](https://www.mlit.go.jp/plateau/)のPython版パーサおよびビューア用モジュールです。  
 3D表示は[Open3D](http://www.open3d.org/)または[Blender Python (bpy)](https://docs.blender.org/api/current/index.html)で行います。  
 
 ## はじめに
 本ソフトウェアは、[東京23区から新しい世界を創るアイデアソン／ハッカソン](https://asciistartup.connpass.com/event/198420/)で開発されたものです。  
-開発チーム： ***チーム７（チーム名・影の功労者，３名）***  
-どなたでも使用・開発参加できます。
+開発チーム： ***チーム７ （チーム名「影の功労者」，３名）***  
+どなたでも使用・開発参加できます。  
+本リポジトリにPLATEAU(CityGML)のデータおよび変換したデータは含みません。入手してください。  
 
 機能一覧  
 * bldg(建物)のLOD1,LOD2のパース、表示、LOD2テクスチャ表示(遅い)、メタデータのパース
@@ -17,7 +20,9 @@
 
 未対応  
 * luse(建設予定値)のパース、表示
-* codelists定義 (CityGML_01/13100/codelists) のパース
+* brid(橋？)のパース、表示、テクスチャ表示
+* codelists定義のパース
+* bldg(建物)のLOD3以上のパース、表示
 
 ## 動作環境
 Python3 (3.6.4で確認)
@@ -35,14 +40,31 @@ Python3 (3.6.4で確認)
 >pip install open3d-0.11.2-***.whl
   
 ## PLATEAU(CityGML)データ
-使用データ・今回は東京23区 CityGML_01.zip, CityGML_02.zip をダウンロードして展開します。  
-3ディレクトリを並べて配置します。(違っていてもオプションでパスを指定可能。シンボリックリンクでも良い)  
+
+### PLATEAU version 0.1の場合 (CityGML_01.zip, CityGML_02.zip)
+3ディレクトリを並べて配置します。(違っていても-pathsオプションでパスを指定可能。シンボリックリンクでも良い)  
 -- CityGML_01  
+&ensp;|- 13100  
 -- CityGML_02  
--- plateaupy  
+&ensp;|- 13100  
+-- plateaupy (このリポジトリ)  
+&ensp;|- plateaupy  
+&ensp;|- README.md  
+
+### PLATEAU version 0.2の場合 (13100_1.zip ~ 13100_6.zip)
+どこかのディレクトリ(例えば"CityGMLver0.2")にデータを展開し、  
+以下の appviewer.py 実行時にオプション -paths で指定します。( -paths /path/to/CityGMLver0.2 )  
+-- CityGMLver0.2  
+&ensp;|- 13100_1  
+&ensp;|- 13100_2  
+&ensp;|- 13100_3  
+&ensp;|- 13100_4  
+&ensp;|- 13100_5  
+&ensp;|- 13100_6  
+
 
 ## ビューアアプリ appviewer の使い方
-1. 区画番号一覧を表示します。  
+1. 区画番号(メッシュコード)一覧を表示します。  
 >python appviewer.py -cmd locations  
 
 以下が表示されます。CityGMLへのパスが誤っていると異なります。パスはコマンド引数 -paths で指定することも可能です。  
@@ -62,7 +84,7 @@ Python3 (3.6.4で確認)
 
 >python appviewer.py -loc 533925 -c  
 
-4. オプション -k で、gml種類 0:bldg, 1:dem, 2:luse, 3:tran を指定できます。  
+4. オプション -k で、gml種類 0:bldg, 1:dem, 2:luse, 3:tran 4:brid を指定できます。  
 
 >python appviewer.py -loc 533925 -c -k 0  
 
@@ -77,19 +99,12 @@ Python3 (3.6.4で確認)
 
 >python appviewer.py -loc 533925 -c -cmd dumpmeta  
 
-## plateaupy の説明
-
->import plateaupy  
->pl = plateaupy.plparser(paths=['../CityGML_01','../CityGML_02'])  
-
-TBD
-
 ## Blender-Python
-
+![blender](doc/blender.png)
 ### Blender-Python インストール
 
 [blender/blendertest.sh](blender/blendertest.sh)を参考にしてください。  
-Blender 2.91.2 で確認しています。  
+Blender 2.91.2 で確認しています。2.8以降bpyの仕様が大きく変わったため、少なくとも2.8以降である必要があります。  
 Blender-Python(bpy)はBlender内のPythonで実行されるため、このPythonに必要モジュールをインストールする必要があります。  
 Blenderのインストールディレクトリを $BLENDER とすると、まずはpipと必要モジュールをインストールします。  
 
@@ -110,7 +125,7 @@ args を必要に応じて修正します。
 
 ## 課題
 
-既知の不具合・課題
+既知の不具合・課題 (取消線は解決済)
 1. 緯度経度->直交座標変換が、おそらく正確ではない  plutils.py 内 convertPolarToCartsian()
 2. 1.と関係するかもしれないが、おそらく、建物・地面・道路の位置が微妙にずれている。
 3. ~~建物のポリゴンの法線方向が逆のものがあり、建物の壁が表示されないものがある。~~
@@ -121,8 +136,15 @@ args を必要に応じて修正します。
 2. 動作高速化 (ポリゴン読み込みコードの最適化、ポリゴン数の削減など)
 3. [東京公共交通オープンデータ](https://tokyochallenge.odpt.org/)APIの利用
 
+## plateaupyモジュール の説明
+
+>import plateaupy  
+>pl = plateaupy.plparser(paths=['../CityGML_01','../CityGML_02'])  
+
+TBD
+
 ## ライセンス
-[MITライセンス](LICENSE.txt)  
+[MIT License](LICENSE.txt)  
   
 使用している外部モジュールは各々のライセンスに従ってください。  
 * earcut-python  

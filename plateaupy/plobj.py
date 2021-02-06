@@ -55,6 +55,7 @@ class plobj:
 	DEM  = 1
 	LUSE = 2
 	TRAN = 3
+	BRID = 4
 	@staticmethod
 	def getLocationFromFilename(filename, bLarge=False):
 		loc = int(os.path.basename(filename).split('_')[0])

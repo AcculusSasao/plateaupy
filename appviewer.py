@@ -46,20 +46,14 @@ if args.path_write_ply_files is not None:
 
 # show by Open3D
 print('presenting..')
-window_name = 'PLATEAUpy viewer'
-width  = 640
-height = 480
-bgcolor = args.bgcolor
-vis = o3d.visualization.VisualizerWithKeyCallback()
-vis.create_window(window_name=window_name, width=width, height=height)
-vis.get_render_option().background_color = np.asarray(bgcolor)
-vis.get_render_option().mesh_show_back_face = True
-vis.get_render_option().mesh_show_wireframe = True
-vis.get_render_option().show_coordinate_frame = True
-meshes = pl.get_Open3D_TriangleMesh(color=args.color)
-for mesh in meshes:
-	vis.add_geometry(mesh)
-vis.run()
 print('ESC to quit.')
-vis.poll_events()
-vis.update_renderer()
+meshes = pl.get_Open3D_TriangleMesh(color=args.color)
+
+from plateaupy.plvisualizer import Visualizer3D
+vi = Visualizer3D()
+for mesh in meshes:
+	vi.vis.add_geometry(mesh)
+while True:
+	key = vi.wait(1)
+	if key == 27:	# ESC
+		break
