@@ -29,7 +29,7 @@ Python3 (3.6.4で確認)
 
 ## インストール
 取得
->git clone -recursive https://github.com/AcculusSasao/plateaupy.git  
+>git clone --recursive https://github.com/AcculusSasao/plateaupy.git  
 
 モジュールインストール
 
