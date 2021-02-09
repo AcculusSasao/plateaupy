@@ -1,6 +1,7 @@
 import open3d as o3d
 import numpy as np
 import time
+import cv2
 usleep = lambda x: time.sleep(x/1000000.0)
 
 class Visualizer3D:
@@ -36,6 +37,9 @@ class Visualizer3D:
 		vis.register_key_callback( self._GLFW_KEY_ESCAPE, keycallback_esc )
 		vis.register_key_callback( self._GLFW_KEY_SPACE,  keycallback_space )
 		vis.register_key_callback( self._GLFW_KEY_TAB,    keycallback_tab )
+
+		self.recordfile = None
+		self.writer = None
 		
 		self.vis = vis
 		self.campar = campar
@@ -43,6 +47,7 @@ class Visualizer3D:
 		self.clear()
 
 	def destroy(self):
+		self.stop_recording()
 		self.vis.destroy_window()
 	def clear(self, coord=0, bUpdateReset=True):
 		self.vis.clear_geometries()
@@ -51,6 +56,29 @@ class Visualizer3D:
 	def update(self):
 		self.vis.poll_events()
 		self.vis.update_renderer()
+		self.record()
+	
+	def start_recording(self, filename):
+		self.recordfile = filename + '.avi'
+		self.writer = None
+	def stop_recording(self):
+		self.recordfile = None
+		if self.writer is not None:
+			self.writer.release()
+			self.writer = None
+	def record(self):
+		doOpen = False
+		if self.recordfile is not None and self.writer is None:
+			doOpen = True
+		if self.writer is not None or doOpen:
+			oimg = self.vis.capture_screen_float_buffer( do_render=False )
+			img = np.array(oimg)
+			img = np.array(img*255,dtype=np.uint8)
+			img = img[:,:,[2,1,0]]
+			if doOpen:
+				fourcc = cv2.VideoWriter_fourcc(*'H264')
+				self.writer = cv2.VideoWriter( self.recordfile, fourcc, 30.0, (img.shape[1],img.shape[0]) )
+			self.writer.write(img)
 
 	@classmethod
 	def wait(cls,usec=0):
