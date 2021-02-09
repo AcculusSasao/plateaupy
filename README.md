@@ -14,14 +14,15 @@
 * bldg(建物)のLOD1,LOD2のパース、表示、LOD2テクスチャ表示(遅い)、メタデータのパース
 * dem(地表)のパース、表示
 * tran(道路)のパース、表示
+* 一度パースしたデータをキャッシュしておき次回から高速読み込み
+* codelists定義のパース
 * Open3D TriangleMesh への変換
 * Blender Object への変換
 * .plyファイルへの出力
 
 未対応  
 * luse(建設予定値)のパース、表示
-* brid(橋？)のパース、表示、テクスチャ表示
-* codelists定義のパース
+* brid(橋)のパース、表示、テクスチャ表示
 * bldg(建物)のLOD3以上のパース、表示
 
 ## 動作環境
@@ -98,6 +99,10 @@ Python3 (3.6.4で確認)
 7. コマンドdumpmetaで、bldg内のメタデータを表示します。  
 
 >python appviewer.py -loc 533925 -c -cmd dumpmeta  
+
+8. コマンドcodelistsで、codelists定義を表示します。  
+
+>python appviewer.py -cmd codelists
 
 ## Blender-Python
 ![blender](doc/blender.png)

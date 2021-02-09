@@ -8,6 +8,7 @@ from plateaupy.pldem import pldem
 from plateaupy.plluse import plluse
 from plateaupy.pltran import pltran
 from plateaupy.plutils import *
+from plateaupy.plcodelists import scan_codelists
 
 class plparser:
 	def __init__(self, paths=None):
@@ -53,6 +54,10 @@ class plparser:
 		locations.extend( [plobj.getLocationFromFilename( filename, True ) for filename in self.filenames_luse] )
 		locations.extend( [plobj.getLocationFromFilename( filename, True ) for filename in self.filenames_tran] )
 		self.locations = sorted(list(set(locations)))
+		# parse codelists
+		dir_codelists = glob.glob( path + '/13100*/codelists/' )
+		if len(dir_codelists) > 0:
+			self.codelists = scan_codelists(dir_codelists[0])
 
 	'''
 	@param bLoadCache:	load cache data or not
