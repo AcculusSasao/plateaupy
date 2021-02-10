@@ -16,8 +16,11 @@ parser.add_argument('-c','--cache',action='store_true', help='use cache data')
 parser.add_argument('-cpath','--cachepath',help='cache directory name',default='cached',type=str)
 parser.add_argument('-color','--color',help='color',default=None,type=float,nargs=3)
 parser.add_argument('-bgcolor','--bgcolor',help='background color',default=[1,1,1],type=float,nargs=3)
+parser.add_argument('-lod0','--lod0',action='store_true', help='use LOD0 in bldg.')
 parser.add_argument('-lod2texture','--lod2texture',action='store_true', help='show LOD2 texture images (too slow).')
-parser.add_argument('-plypath','--path_write_ply_files',help='path to write plyfiles',default=None,type=str)
+parser.add_argument('-plypath','--path_write_ply_files',help='path to write plyfiles.',default=None,type=str)
+parser.add_argument('-rec','--recfile',help='a record file name without ext.',default=None,type=str)
+parser.add_argument('-show_wire','--show_wire',action='store_true', help='show wireframe in polygons.')
 args = parser.parse_args()
 
 # scan paths
@@ -32,7 +35,7 @@ if args.cmd == 'codelists':
 	sys.exit(0)
 
 # load
-pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location, bUseLOD2texture=args.lod2texture )
+pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location, bUseLOD2texture=args.lod2texture, bUseLOD0=args.lod0 )
 
 # special commands
 if args.cmd == 'dumpmeta':
@@ -54,9 +57,14 @@ meshes = pl.get_Open3D_TriangleMesh(color=args.color)
 
 from plateaupy.plvisualizer import Visualizer3D
 vi = Visualizer3D()
+if args.show_wire:
+	vi.vis.get_render_option().mesh_show_wireframe = True
 for mesh in meshes:
 	vi.vis.add_geometry(mesh)
+if args.recfile is not None:
+	vi.start_recording(args.recfile)
 while True:
 	key = vi.wait(1)
 	if key == 27:	# ESC
 		break
+vi.destroy()

@@ -1,4 +1,5 @@
 from numpy.lib.polynomial import poly
+from numpy.lib.twodim_base import tri
 from plateaupy.plobj import plmesh, plobj
 from plateaupy.plutils import *
 from plateaupy.thirdparty.earcutpython.earcut.earcut import earcut
@@ -40,6 +41,22 @@ extendedAttribute={}\n\
 attr={}'\
 		.format(self.id, self.usage, self.measuredHeight, self.storeysAboveGround, self.storeysBelowGround, \
 			self.address, self.buildingDetails, self.extendedAttribute, self.attr)
+	# get vertices, triangles from lod0RoofEdge
+	def getLOD0polygons(self, height=None):
+		vertices = None
+		triangles = None
+		if len(self.lod0RoofEdge) > 0:
+			vertices = []
+			for x in self.lod0RoofEdge[0]:
+				xx = copy.deepcopy(x)
+				if height is not None:
+					xx[2] = height
+				vertices.append( convertPolarToCartsian( *xx ) )
+			vertices = np.array(vertices)
+			res = earcut(np.array(vertices,dtype=np.int).flatten(), dim=3)
+			if len(res) > 0:
+				triangles = np.array(res).reshape((-1,3))
+		return vertices, triangles
 
 class appParameterizedTexture:
 	def __init__(self):
@@ -53,14 +70,14 @@ class appParameterizedTexture:
 		return None
 
 class plbldg(plobj):
-	def __init__(self,filename=None, bUseLOD2texture=False, texturedir='cached'):
+	def __init__(self,filename=None, bUseLOD2texture=False, texturedir='cached', bUseLOD0=False):
 		super().__init__()
 		self.kindstr = 'bldg'
 		self.buildings = []	# list of Building
 		if filename is not None:
-			self.loadFile(filename, bUseLOD2texture=bUseLOD2texture, texturedir=texturedir)
+			self.loadFile(filename, bUseLOD2texture=bUseLOD2texture, texturedir=texturedir, bUseLOD0=bUseLOD0)
 
-	def loadFile(self,filename, bUseLOD2texture=False, texturedir='cached'):
+	def loadFile(self,filename, bUseLOD2texture=False, texturedir='cached', bUseLOD0=False):
 		tree, root = super().loadFile(filename)
 
 		# scan appearanceMember
@@ -161,12 +178,20 @@ class plbldg(plobj):
 			self.buildings.append(b)
 		
 		# vertices, triangles
-		if not bUseLOD2texture:
+		if (not bUseLOD2texture) or bUseLOD0:
 			mesh = plmesh()
 		for b in self.buildings:
-			if bUseLOD2texture:
+			if bUseLOD2texture and (not bUseLOD0):
 				mesh = plmesh()
-			if b.lod2ground or b.lod2roof or b.lod2wall:
+			
+			if bUseLOD0:
+				# LOD0
+				vertices, triangles = b.getLOD0polygons()
+				if vertices is not None and triangles is not None:
+					vstart = len(mesh.vertices)
+					mesh.vertices.extend( vertices )
+					mesh.triangles.extend( triangles + vstart )
+			elif b.lod2ground or b.lod2roof or b.lod2wall:
 				# LOD2
 				if bUseLOD2texture:
 					if b.partex.imageURI is not None:
