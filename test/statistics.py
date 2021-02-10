@@ -25,6 +25,7 @@ pl = plateaupy.plparser(args.paths)
 # load
 pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location, bUseLOD2texture=False )
 
+
 # show Building_usage
 print()
 print('### Building_usage in ', args.location)
@@ -47,6 +48,32 @@ for key, cnt in list(res.items()):
 		print('{} ({}) : {}'.format(key, usage[key], cnt))
 	total_cnt += cnt
 print('### total :', total_cnt)
+
+
+# show extendedAttribute_key3
+print()
+print('### extendedAttribute_key3 建物用途コード（都道府県） in ', args.location)
+ExtendedAttribute_key3 = pl.codelists['ExtendedAttribute_key3']
+res = dict()
+key = '3'
+for bldg in list(pl.bldg.values()):
+	for bl in bldg.buildings:
+		if key in bl.extendedAttribute:
+			val = bl.extendedAttribute[key]
+			if val not in res:
+				res[val] = 0
+			res[val] += 1
+res = sorted(res.items(), key=lambda x:int(x[0]))
+total_cnt = 0
+for key, cnt in res:
+	if cnt > 0:
+		if key in ExtendedAttribute_key3:
+			print('{} ({}) : {}'.format(key, ExtendedAttribute_key3[key], cnt))
+		else:
+			print('{} ({}) : {}'.format(key, key, cnt))
+	total_cnt += cnt
+print('### total :', total_cnt)
+
 
 # show storeysAboveGround, storeysBelowGround
 print()
