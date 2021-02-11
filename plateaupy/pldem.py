@@ -1,22 +1,25 @@
 from plateaupy.plobj import plobj,plmesh
 from plateaupy.plutils import *
+from plateaupy.ploptions import ploptions
 import numpy as np
 import copy
 from lxml import etree
 
 class pldem(plobj):
-	def __init__(self,filename=None):
+	def __init__(self,filename=None, options=ploptions()):
 		super().__init__()
 		self.kindstr = 'dem'
 		self.posLists = None	# list of 'posList'(LinearRing) : [*,4,3]
 		if filename is not None:
-			self.loadFile(filename)
+			self.loadFile(filename, options=options)
 		
-	def loadFile(self,filename, num_search_coincident=100):
+	def loadFile(self,filename, options=ploptions(), num_search_coincident=100):
 		tree, root = super().loadFile(filename)
 		# posLists
 		vals = tree.xpath('/core:CityModel/core:cityObjectMember/dem:ReliefFeature/dem:reliefComponent/dem:TINRelief/dem:tin/gml:TriangulatedSurface/gml:trianglePatches/gml:Triangle/gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 		self.posLists = np.array([str2floats(v).reshape((-1,3)) for v in vals])
+		if options.bHeightZero:
+			self.posLists[:,:,2] = 0
 		#print(self.posLists.shape)
 		# convert to XYZ
 		posLists = copy.deepcopy(self.posLists)

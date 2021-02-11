@@ -16,7 +16,7 @@ class plmesh:
 	def get_center_vertices(self):
 		return np.mean( self.vertices, axis=0 )
 	
-	def to_Open3D_TriangleMesh(self,color=None):
+	def to_Open3D_TriangleMesh(self, color=None, wireonly=False):
 		import open3d as o3d
 
 		mesh = o3d.geometry.TriangleMesh()
@@ -32,6 +32,8 @@ class plmesh:
 		elif color is not None:
 			mesh.paint_uniform_color( color )
 		mesh.compute_vertex_normals()
+		if wireonly:
+			mesh = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
 		return mesh
 	
 	def to_Blender_Object(self, meshname, vbase=None):
@@ -89,11 +91,11 @@ class plobj:
 			self.upperCorner = str2floats(vals[0])
 		return tree, root
 
-	def get_Open3D_TriangleMesh(self,color=None):
+	def get_Open3D_TriangleMesh(self, color=None, wireonly=False):
 		_color = color
 		if _color is None:
 			_color = np.random.rand(3)
-		return [ m.to_Open3D_TriangleMesh(_color) for m in self.meshes ]
+		return [ m.to_Open3D_TriangleMesh(color=_color, wireonly=wireonly) for m in self.meshes ]
 
 	def write_Open3D_ply_files(self, savepath, color=None):
 		import open3d as o3d

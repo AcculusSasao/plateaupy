@@ -2,6 +2,7 @@ numpy
 argparse
 lxml
 opencv-python
+opencv-contrib-python
 scipy >= 1.5.4
 
 #open3d >= 0.9.0.0

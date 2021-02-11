@@ -18,6 +18,7 @@ parser.add_argument('-color','--color',help='color',default=None,type=float,narg
 parser.add_argument('-bgcolor','--bgcolor',help='background color',default=[1,1,1],type=float,nargs=3)
 parser.add_argument('-lod0','--lod0',action='store_true', help='use LOD0 in bldg.')
 parser.add_argument('-lod2texture','--lod2texture',action='store_true', help='show LOD2 texture images (too slow).')
+parser.add_argument('-zh','--zeroheight',action='store_true', help='force to set height values as zero.')
 parser.add_argument('-plypath','--path_write_ply_files',help='path to write plyfiles.',default=None,type=str)
 parser.add_argument('-rec','--recfile',help='a record file name without ext.',default=None,type=str)
 parser.add_argument('-show_wire','--show_wire',action='store_true', help='show wireframe in polygons.')
@@ -34,8 +35,14 @@ if args.cmd == 'codelists':
 	print('codelists: ',pl.codelists)
 	sys.exit(0)
 
+# options
+options = plateaupy.ploptions()
+options.bUseLOD0 = args.lod0
+options.bUseLOD2texture = args.lod2texture
+options.texturedir = args.cachepath
+options.bHeightZero = args.zeroheight
 # load
-pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location, bUseLOD2texture=args.lod2texture, bUseLOD0=args.lod0 )
+pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location, options=options )
 
 # special commands
 if args.cmd == 'dumpmeta':

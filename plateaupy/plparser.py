@@ -1,4 +1,5 @@
 import os
+from plateaupy.ploptions import ploptions
 import numpy as np
 import glob
 from lxml import etree
@@ -65,7 +66,7 @@ class plparser:
 	@param kind:		specify the type of gml, plobj.ALL, plobj.BLDG,..
 	@param location:	specify which gml data in the type are loaded, -1:all, <1000:array index, >=1000:location
 	'''
-	def loadFiles(self, bLoadCache=False, cachedir='cached', kind=None, location=-1, bUseLOD2texture=False, bUseLOD0=False):
+	def loadFiles(self, bLoadCache=False, cachedir='cached', kind=None, location=-1, options=ploptions()):
 		if kind is None:
 			kind = plobj.ALL
 		if cachedir is not None:
@@ -146,36 +147,40 @@ class plparser:
 			print('### loading GML data..')
 			print('# bldg')
 			for f in filenames_bldg:
-				obj = plbldg(f, bUseLOD2texture=bUseLOD2texture, texturedir=cachedir, bUseLOD0=bUseLOD0)
+				obj = plbldg(f, options=options)
 				self.bldg[obj.location] = obj
 				obj.save(plobj.getCacheFilename(cachedir,f))
 			print('# dem')
 			for f in filenames_dem:
-				obj = pldem(f)
+				obj = pldem(f, options=options)
 				self.dem[obj.location] = obj
 				obj.save(plobj.getCacheFilename(cachedir,f))
 			print('# luse')
 			for f in filenames_luse:
-				obj = plluse(f)
+				obj = plluse(f, options=options)
 				self.luse[obj.location] = obj
 				obj.save(plobj.getCacheFilename(cachedir,f))
 			print('# tran')
 			for f in filenames_tran:
 				#obj = pltran(f, self.dem[ plobj.getLocationFromFilename(f) ])
-				obj = pltran(f)
+				obj = pltran(f, options=options)
 				self.tran[obj.location] = obj
 				obj.save(plobj.getCacheFilename(cachedir,f))
 
-	def get_Open3D_TriangleMesh(self, color=None):
+	def get_Open3D_TriangleMesh(self, color=None, kindbits=255, wireonly=False):
 		meshes = []
-		for obj in self.bldg.values():
-			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
-		for obj in self.dem.values():
-			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
-		for obj in self.luse.values():
-			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
-		for obj in self.tran.values():
-			meshes.extend( obj.get_Open3D_TriangleMesh(color=color) )
+		if kindbits & (1 << plobj.BLDG):
+			for obj in self.bldg.values():
+				meshes.extend( obj.get_Open3D_TriangleMesh(color=color, wireonly=wireonly) )
+		if kindbits & (1 << plobj.DEM):
+			for obj in self.dem.values():
+				meshes.extend( obj.get_Open3D_TriangleMesh(color=color, wireonly=wireonly) )
+		if kindbits & (1 << plobj.LUSE):
+			for obj in self.luse.values():
+				meshes.extend( obj.get_Open3D_TriangleMesh(color=color, wireonly=wireonly) )
+		if kindbits & (1 << plobj.TRAN):
+			for obj in self.tran.values():
+				meshes.extend( obj.get_Open3D_TriangleMesh(color=color, wireonly=wireonly) )
 		return meshes
 	
 	def write_Open3D_ply_files(self, savepath, color=None):

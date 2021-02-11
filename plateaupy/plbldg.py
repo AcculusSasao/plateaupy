@@ -2,6 +2,7 @@ from numpy.lib.polynomial import poly
 from numpy.lib.twodim_base import tri
 from plateaupy.plobj import plmesh, plobj
 from plateaupy.plutils import *
+from plateaupy.ploptions import ploptions
 from plateaupy.thirdparty.earcutpython.earcut.earcut import earcut
 import numpy as np
 import copy
@@ -10,6 +11,8 @@ import sys
 import os
 import cv2
 from lxml import etree
+
+_floorheight = 2	# fixed value, the height of 1 floor in meter.
 
 class Building:
 	def __init__(self):
@@ -70,14 +73,14 @@ class appParameterizedTexture:
 		return None
 
 class plbldg(plobj):
-	def __init__(self,filename=None, bUseLOD2texture=False, texturedir='cached', bUseLOD0=False):
+	def __init__(self,filename=None, options=ploptions()):
 		super().__init__()
 		self.kindstr = 'bldg'
 		self.buildings = []	# list of Building
 		if filename is not None:
-			self.loadFile(filename, bUseLOD2texture=bUseLOD2texture, texturedir=texturedir, bUseLOD0=bUseLOD0)
+			self.loadFile(filename, options=options)
 
-	def loadFile(self,filename, bUseLOD2texture=False, texturedir='cached', bUseLOD0=False):
+	def loadFile(self,filename, options=ploptions()):
 		tree, root = super().loadFile(filename)
 
 		# scan appearanceMember
@@ -139,6 +142,17 @@ class plbldg(plobj):
 			# lod1Solid
 			vals = bld.xpath('bldg:lod1Solid/gml:Solid/gml:exterior/gml:CompositeSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 			b.lod1Solid = [str2floats(v).reshape((-1,3)) for v in vals]
+			minheight = 0
+			if options.bHeightZero:
+				# calc min height
+				minheight = 4000
+				for x in b.lod1Solid:
+					if minheight > np.min(x[:,2]):
+						minheight = np.min(x[:,2])
+				if b.storeysBelowGround is not None:
+					minheight = minheight + (int(b.storeysBelowGround) * _floorheight)
+				for x in b.lod1Solid:
+					x[:,2] -= minheight
 			# lod2Solid
 			#  nothing to do for parsing <bldg:lod2Solid>
 			# lod2MultiSurface : Ground, Roof, Wall
@@ -146,6 +160,9 @@ class plbldg(plobj):
 				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
 				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
+				if options.bHeightZero:
+					for x in surf:
+						x[:,2] -= minheight
 				b.lod2ground[polyid] = surf
 				app = appParameterizedTexture.search_list( partex, polyid )
 				if app is not None:
@@ -157,6 +174,9 @@ class plbldg(plobj):
 				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
 				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
+				if options.bHeightZero:
+					for x in surf:
+						x[:,2] -= minheight
 				b.lod2roof[polyid] = surf
 				app = appParameterizedTexture.search_list( partex, polyid )
 				if app is not None:
@@ -168,6 +188,9 @@ class plbldg(plobj):
 				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
 				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
+				if options.bHeightZero:
+					for x in surf:
+						x[:,2] -= minheight
 				b.lod2wall[polyid] = surf
 				app = appParameterizedTexture.search_list( partex, polyid )
 				if app is not None:
@@ -178,13 +201,13 @@ class plbldg(plobj):
 			self.buildings.append(b)
 		
 		# vertices, triangles
-		if (not bUseLOD2texture) or bUseLOD0:
+		if (not options.bUseLOD2texture) or options.bUseLOD0:
 			mesh = plmesh()
 		for b in self.buildings:
-			if bUseLOD2texture and (not bUseLOD0):
+			if options.bUseLOD2texture and (not options.bUseLOD0):
 				mesh = plmesh()
 			
-			if bUseLOD0:
+			if options.bUseLOD0:
 				# LOD0
 				vertices, triangles = b.getLOD0polygons()
 				if vertices is not None and triangles is not None:
@@ -193,12 +216,12 @@ class plbldg(plobj):
 					mesh.triangles.extend( triangles + vstart )
 			elif b.lod2ground or b.lod2roof or b.lod2wall:
 				# LOD2
-				if bUseLOD2texture:
+				if options.bUseLOD2texture:
 					if b.partex.imageURI is not None:
 						# convert .tif into .png, because o3d.io.read_image() fails.
 						mesh.texture_filename = os.path.dirname( self.filename ) + '/' + b.partex.imageURI
 						img = cv2.imread(mesh.texture_filename)
-						mesh.texture_filename = texturedir + '/' + os.path.basename( mesh.texture_filename ) + '.png'
+						mesh.texture_filename = options.texturedir + '/' + os.path.basename( mesh.texture_filename ) + '.png'
 						cv2.imwrite(mesh.texture_filename,img)
 				# ground
 				for key, value in b.lod2ground.items():
@@ -210,7 +233,7 @@ class plbldg(plobj):
 						triangles = np.array(res).reshape((-1,3))
 						mesh.triangles.extend( triangles + vstart )
 						# texture
-						if bUseLOD2texture:
+						if options.bUseLOD2texture:
 							if key in b.partex.targets.keys():
 								mesh.triangle_uvs.extend( [ b.partex.targets[key][0,x] for x in triangles.reshape((-1)) ] )
 								mesh.triangle_material_ids.extend( [0]*len(triangles) )
@@ -227,7 +250,7 @@ class plbldg(plobj):
 						triangles = np.array(res).reshape((-1,3))
 						mesh.triangles.extend( triangles + vstart )
 						# texture
-						if bUseLOD2texture:
+						if options.bUseLOD2texture:
 							if key in b.partex.targets.keys():
 								mesh.triangle_uvs.extend( [ b.partex.targets[key][0,x] for x in triangles.reshape((-1)) ] )
 								mesh.triangle_material_ids.extend( [0]*len(triangles) )
@@ -241,7 +264,7 @@ class plbldg(plobj):
 						triangles = np.array(res).reshape((-1,3))
 						mesh.triangles.extend( triangles + vstart )
 						# texture
-						if bUseLOD2texture:
+						if options.bUseLOD2texture:
 							if key in b.partex.targets.keys():
 								mesh.triangle_uvs.extend( [ b.partex.targets[key][0,x] for x in triangles.reshape((-1)) ] )
 								mesh.triangle_material_ids.extend( [0]*len(triangles) )
@@ -256,11 +279,11 @@ class plbldg(plobj):
 						triangles = np.array(res).reshape((-1,3))
 						mesh.triangles.extend( triangles + vstart )
 						# texture
-						if bUseLOD2texture:	# add dummy uvs, material_ids    (The texture can not appear if the numbers of triangles are different between triangles and them.)
+						if options.bUseLOD2texture:	# add dummy uvs, material_ids    (The texture can not appear if the numbers of triangles are different between triangles and them.)
 							mesh.triangle_uvs.extend( [ np.zeros((2)) for x in range(len(triangles)*3) ] )
 							mesh.triangle_material_ids.extend( [0]*len(triangles) )
-			if bUseLOD2texture:
+			if options.bUseLOD2texture:
 				self.meshes.append(mesh)
-		if not bUseLOD2texture:
+		if not options.bUseLOD2texture:
 			self.meshes.append(mesh)
 
