@@ -58,9 +58,10 @@ class Visualizer3D:
 		self.vis.update_renderer()
 		self.record()
 	
-	def start_recording(self, filename):
+	def start_recording(self, filename, fps=30):
 		self.recordfile = filename + '.avi'
 		self.writer = None
+		self.recfps = fps
 	def stop_recording(self):
 		self.recordfile = None
 		if self.writer is not None:
@@ -77,7 +78,7 @@ class Visualizer3D:
 			img = img[:,:,[2,1,0]]
 			if doOpen:
 				fourcc = cv2.VideoWriter_fourcc(*'H264')
-				self.writer = cv2.VideoWriter( self.recordfile, fourcc, 30.0, (img.shape[1],img.shape[0]) )
+				self.writer = cv2.VideoWriter( self.recordfile, fourcc, self.recfps, (img.shape[1],img.shape[0]) )
 			self.writer.write(img)
 
 	@classmethod

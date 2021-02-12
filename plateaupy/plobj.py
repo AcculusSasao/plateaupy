@@ -66,16 +66,17 @@ class plobj:
 		return loc
 	@staticmethod
 	def get6QuarterFromFilename(filename):
+		division = 8 # 5
 		locstr = os.path.basename(filename).split('_')[0]
 		if len(locstr) != 8:
 			return (-1,-1)
 		lat = int(locstr[6])
 		lon = int(locstr[7])
-		if lat < 5:
+		if lat < division:
 			lat = 0
 		else:
 			lat = 1
-		if lon < 5:
+		if lon < division:
 			lon = 0
 		else:
 			lon = 1
