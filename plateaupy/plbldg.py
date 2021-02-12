@@ -145,12 +145,14 @@ class plbldg(plobj):
 			minheight = 0
 			if options.bHeightZero:
 				# calc min height
-				minheight = 4000
+				minheight = 10000
 				for x in b.lod1Solid:
 					if minheight > np.min(x[:,2]):
 						minheight = np.min(x[:,2])
 				if b.storeysBelowGround is not None:
 					minheight = minheight + (int(b.storeysBelowGround) * _floorheight)
+				if minheight == 10000:
+					minheight = 0
 				for x in b.lod1Solid:
 					x[:,2] -= minheight
 			# lod2Solid
@@ -161,6 +163,16 @@ class plbldg(plobj):
 				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
 				if options.bHeightZero:
+					if minheight == 0:
+						# calc min height
+						minheight = 10000
+						for x in surf:
+							if minheight > np.min(x[:,2]):
+								minheight = np.min(x[:,2])
+						if b.storeysBelowGround is not None:
+							minheight = minheight + (int(b.storeysBelowGround) * _floorheight)
+						if minheight == 10000:
+							minheight = 0
 					for x in surf:
 						x[:,2] -= minheight
 				b.lod2ground[polyid] = surf
