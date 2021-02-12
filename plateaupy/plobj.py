@@ -65,6 +65,22 @@ class plobj:
 			loc = loc // 100
 		return loc
 	@staticmethod
+	def get6QuarterFromFilename(filename):
+		locstr = os.path.basename(filename).split('_')[0]
+		if len(locstr) != 8:
+			return (-1,-1)
+		lat = int(locstr[6])
+		lon = int(locstr[7])
+		if lat < 5:
+			lat = 0
+		else:
+			lat = 1
+		if lon < 5:
+			lon = 0
+		else:
+			lon = 1
+		return (lat,lon)
+	@staticmethod
 	def getCacheFilename(cachedir, filename):
 		return cachedir + '/' + os.path.splitext(os.path.basename(filename))[0]
 

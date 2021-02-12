@@ -117,6 +117,8 @@ class plparser:
 			print('### loading cache data..')
 			print('# bldg')
 			for f in filenames_bldg:
+				if (options.div6toQuarter is not None) and (options.div6toQuarter != plobj.get6QuarterFromFilename(f)):
+					continue
 				obj = plbldg()
 				res = obj.load(plobj.getCacheFilename(cachedir,f))
 				if res is not None:
@@ -147,6 +149,8 @@ class plparser:
 			print('### loading GML data..')
 			print('# bldg')
 			for f in filenames_bldg:
+				if (options.div6toQuarter is not None) and (options.div6toQuarter != plobj.get6QuarterFromFilename(f)):
+					continue
 				obj = plbldg(f, options=options)
 				self.bldg[obj.location] = obj
 				obj.save(plobj.getCacheFilename(cachedir,f))

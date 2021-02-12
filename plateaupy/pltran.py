@@ -4,6 +4,7 @@ from plateaupy.ploptions import ploptions
 from plateaupy.thirdparty.earcutpython.earcut.earcut import earcut
 import numpy as np
 import copy
+import os
 from lxml import etree
 
 # (!TBD!) road height [in meter] offset in loading, because the height values in .gml are always zero.
@@ -19,6 +20,8 @@ class pltran(plobj):
 
 	def loadFile(self,filename, options=ploptions(),dem=None):
 		tree, root = super().loadFile(filename)
+		lt,rb = convertMeshcodeToLatLon( os.path.basename(filename).split('_')[0] )
+		center = (np.array(lt)+np.array(rb))/2
 		# posLists
 		vals = tree.xpath('/core:CityModel/core:cityObjectMember/tran:Road/tran:lod1MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
 		self.posLists = [str2floats(v).reshape((-1,3)) for v in vals]
@@ -29,6 +32,7 @@ class pltran(plobj):
 		mesh = plmesh()
 		#self.posLists = self.posLists[:1000]
 		# invoke multi processes
+		usebit = []
 		for plist in self.posLists:
 			vertices = [ convertPolarToCartsian( *x ) for x in plist ]
 			res = earcut(np.array(vertices, dtype=np.int).flatten(), dim=3)
@@ -36,6 +40,31 @@ class pltran(plobj):
 				triangles = np.array(res).reshape((-1,3)) + len(mesh.vertices)
 				mesh.vertices.extend( vertices )
 				mesh.triangles.extend( triangles )
+				if options.div6toQuarter is not None:
+					for x in plist:
+						bit = True
+						if options.div6toQuarter is not None:
+							lat = x[0]
+							lon = x[1]
+							if lat < center[0]:
+								lat = 0
+							else:
+								lat = 1
+							if lon < center[1]:
+								lon = 0
+							else:
+								lon = 1
+							if (lat,lon) != options.div6toQuarter:
+								bit = False
+						usebit.append(bit)
+		# remove 
+		if options.div6toQuarter is not None:
+			newtriangles = []
+			for tri in mesh.triangles:
+				if usebit[tri[0]] and usebit[tri[1]] and usebit[tri[2]]:
+					newtriangles.append( tri )
+			mesh.triangles = np.array(newtriangles)
+			
 		self.meshes.append(mesh)
 
 	def load(self,filepath):

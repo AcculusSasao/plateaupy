@@ -19,6 +19,8 @@ parser.add_argument('-bgcolor','--bgcolor',help='background color',default=[1,1,
 parser.add_argument('-lod0','--lod0',action='store_true', help='use LOD0 in bldg.')
 parser.add_argument('-lod2texture','--lod2texture',action='store_true', help='show LOD2 texture images (too slow).')
 parser.add_argument('-zh','--zeroheight',action='store_true', help='force to set height values as zero.')
+parser.add_argument('-qx','--quarterx',help='force to divide mesh area(6) into the quarter. specify None or 0 or 1', default=None, type=int)
+parser.add_argument('-qy','--quartery',help='force to divide mesh area(6) into the quarter. specify None or 0 or 1', default=None, type=int)
 parser.add_argument('-plypath','--path_write_ply_files',help='path to write plyfiles.',default=None,type=str)
 parser.add_argument('-rec','--recfile',help='a record file name without ext.',default=None,type=str)
 parser.add_argument('-show_wire','--show_wire',action='store_true', help='show wireframe in polygons.')
@@ -41,6 +43,10 @@ options.bUseLOD0 = args.lod0
 options.bUseLOD2texture = args.lod2texture
 options.texturedir = args.cachepath
 options.bHeightZero = args.zeroheight
+quarter = None
+if args.quarterx is not None and args.quartery is not None:
+	quarter = (args.quartery, args.quarterx)
+options.div6toQuarter = quarter
 # load
 pl.loadFiles( bLoadCache=args.cache, cachedir=args.cachepath, kind=args.kind, location=args.location, options=options )
 
