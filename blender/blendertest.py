@@ -1,4 +1,3 @@
-from plateaupy import plutils
 import bpy
 import plateaupy
 import math
@@ -23,14 +22,14 @@ cache = False
 cachepath = 'cached_blender'
 kind = plateaupy.plobj.ALL
 location = 533925
-lod2texture = False
+options = plateaupy.ploptions()
 ##################
 
 # scan paths
 pl = plateaupy.plparser(paths)
 
 # load
-pl.loadFiles( bLoadCache=cache, cachedir=cachepath, kind=kind, location=location, bUseLOD2texture=lod2texture )
+pl.loadFiles( bLoadCache=cache, cachedir=cachepath, kind=kind, location=location, options=options )
 
 # decide the base point to show
 vbase = None
