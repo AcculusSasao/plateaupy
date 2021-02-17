@@ -6,8 +6,8 @@
 
 ## はじめに
 本ソフトウェアは、[東京23区から新しい世界を創るアイデアソン／ハッカソン](https://asciistartup.connpass.com/event/198420/)で開発されたものです。  
-開発チーム： ***チーム７ （チーム名「影の功労者」，３名）***  
-どなたでも使用・開発参加できます。  
+開発チーム： ***チーム名「影の功労者」，３名***  
+ -> ハッカソンでグランプリをいただきました。このREADMEの最後に作品を紹介します。  
 本リポジトリにPLATEAU(CityGML)のデータは含みません。適切なところから入手してください。  
 
 機能一覧  
@@ -132,7 +132,7 @@ args を必要に応じて修正します。
 
 既知の不具合・課題 (取消線は解決済)
 1. 緯度経度->直交座標変換が、おそらく正確ではない  plutils.py 内 convertPolarToCartsian()
-2. 1.と関係するかもしれないが、おそらく、建物・地面・道路の位置が微妙にずれている。
+2. 1.と関係するかもしれないが、おそらく、建物・地面・道路の位置が微妙にずれている。(気のせいかもしれない)
 3. ~~建物のポリゴンの法線方向が逆のものがあり、建物の壁が表示されないものがある。~~
 4. 道路(tran)の位置情報は高さが全てゼロで、地面(dem)の情報を引っ張ってこなければならない。
 
@@ -143,10 +143,49 @@ args を必要に応じて修正します。
 
 ## plateaupyモジュール の説明
 
->import plateaupy  
->pl = plateaupy.plparser(paths=['../CityGML_01','../CityGML_02'])  
+1. plparserで与えられたパスから.gmlを検索します。この時点では解析は行いません。
 
-TBD
+```
+import plateaupy  
+pl = plateaupy.plparser(paths=['../CityGML_01','../CityGML_02'])  
+```
+
+* pl.locations にメッシュコード一覧がリストとして格納されます。
+* pl.codelists にcodelists定義が辞書として格納されます。
+
+2. .gmlを解析します。引数で解析対象を変更できますので、appviewer.pyの使用法を参考にしてください。
+
+```
+pl.loadFiles()
+```
+
+* pl.bldg に建物情報が辞書として格納されます。
+* pl.dem に地表情報が辞書として格納されます。
+* pl.tran に道路情報が辞書として格納されます。
+
+bldg, dem, tran のクラスである plbldg, pldem, pltran は plobjクラスを親クラスとしています。plobjのメンバmeshesには、クラスplmeshのリストとして、解析したポリゴンデータが格納されます。このplmeshにはOpen3DのTriangleMeshや、BlenderのObjectに変換するメンバ関数があります。  
+
+3. 読み込んだ.gmlの全てをOpen3DのTriangleMeshに変換して取得することができます。
+
+```
+meshes = pl.get_Open3D_TriangleMesh()
+```
+
+4. Open3DのVisualizerをラップした表示用クラスを用意しています。
+
+```
+from plateaupy.plvisualizer import Visualizer3D  
+vi = Visualizer3D()  
+for mesh in meshes:  
+	vi.vis.add_geometry(mesh)  
+while True:  
+	key = vi.wait(1)  
+	if key == 27:	# ESC  
+		break  
+```
+
+
+
 
 ## ライセンス
 [MIT License](LICENSE.txt)  
@@ -154,3 +193,14 @@ TBD
 使用している外部モジュールは各々のライセンスに従ってください。  
 * earcut-python  
 https://github.com/joshuaskelly/earcut-python  
+
+## Appendix : ハッカソンで開発した作品「都市SYM」
+
+[![PLATEAU 3D people flow](http://img.youtube.com/vi/2o--uUFSiZ8/0.jpg)](http://www.youtube.com/watch?v=2o--uUFSiZ8 "PLATEAU 3D people flow")
+
+plateaupyを用いた大規模3D人流シミュレータです。建物は黒のワイヤーフレーム、人は色の付いたキューブで表されています。以下のようにPLATEAU情報を利用しています。応用例として例えば、災害避難時の経過時間やボトルネックの場所分析、をすることができます。
+
+* 道路(tran)を画像解析して交差点と道を認識し、最短経路探索。
+* 建物用途(usage)ごとに色を変え、人が現在いる建物、あるいは向かっている建物の用途の色を、人の色として表示。
+* 建物の床面積や階数情報から、建物の各階に入室可能な人の容量を制限。
+
