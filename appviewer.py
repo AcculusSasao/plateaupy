@@ -8,7 +8,7 @@ import plateaupy
 
 # argparser
 parser = argparse.ArgumentParser(description='plateaupy appviewer')
-parser.add_argument('-paths','--paths',help='list of paths to CityGML dirctories',default=['../CityGML_01','../CityGML_02'],type=str,nargs='*')
+parser.add_argument('-paths','--paths',help='list of paths to CityGML dirctories',default=['path_to_citygml'],type=str,nargs='*')
 parser.add_argument('-cmd','--cmd',help='special command [locations,codelists,dumpmeta]',default='',type=str)
 parser.add_argument('-k','--kind',help='gml kind, -1:all, 0:bldg, 1:dem, 2:luse, 3:tran, 4:brid',default=-1,type=int)
 parser.add_argument('-loc','--location',help='location index number',default=-1,type=int)

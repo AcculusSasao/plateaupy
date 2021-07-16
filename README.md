@@ -8,7 +8,10 @@
 本ソフトウェアは、[東京23区から新しい世界を創るアイデアソン／ハッカソン](https://asciistartup.connpass.com/event/198420/)で開発されたものです。  
 開発チーム： ***チーム名「影の功労者」，３名***  
  -> ハッカソンでグランプリをいただきました。このREADMEの最後に作品を紹介します。  
-本リポジトリにPLATEAU(CityGML)のデータは含みません。適切なところから入手してください。  
+本リポジトリにPLATEAU(CityGML)のデータは含みません。  
+ハッカソン中は非公開データでしたが、[G空間情報センター](https://www.geospatial.jp/ckan/organization/toshi)で正式公開されました。  
+この公開データでも動作するよう修正しました。データダウンロードスクリプトも用意しています。  
+公開データではFBXやOBJなどの３次元データも用意されましたが、本ソフトウェアはCityGMLのみから解析、３次元構築します。  
 
 機能一覧  
 * bldg(建物)のLOD 0,1,2 のパース、表示、LOD2テクスチャ表示(遅い)、メタデータのパース
@@ -26,7 +29,7 @@
 * bldg(建物)のLOD3以上のパース、表示
 
 ## 動作環境
-Python3 (3.6.4で確認)
+Python3 (Python 3.6.4, Ubuntu18.04 で確認)
 
 ## インストール
 取得
@@ -42,35 +45,45 @@ Python3 (3.6.4で確認)
   
 ## PLATEAU(CityGML)データ
 
-### PLATEAU version 0.1の場合 (CityGML_01.zip, CityGML_02.zip)
-3ディレクトリを並べて配置します。(違っていても-pathsオプションでパスを指定可能。シンボリックリンクでも良い)  
--- CityGML_01  
-&ensp;|- 13100  
--- CityGML_02  
-&ensp;|- 13100  
--- plateaupy (このリポジトリ)  
-&ensp;|- plateaupy  
-&ensp;|- README.md  
+### PLATEAU 公開データ
+[G空間情報センター](https://www.geospatial.jp/ckan/organization/toshi)で続々と公開されています。  
+まずは[東京都23区](https://www.geospatial.jp/ckan/dataset/plateau-tokyo23ku)の[CityGML](https://www.geospatial.jp/ckan/dataset/plateau-tokyo23ku-citygml-2020)で確認します。データ構造が同じであれば他都市でも可能です。  
 
-### PLATEAU version 0.2の場合 (13100_1.zip ~ 13100_6.zip)
-どこかのディレクトリ(例えば"CityGMLver0.2")にデータを展開し、  
-以下の appviewer.py 実行時にオプション -paths で指定します。( -paths /path/to/CityGMLver0.2 )  
--- CityGMLver0.2  
-&ensp;|- 13100_1  
-&ensp;|- 13100_2  
-&ensp;|- 13100_3  
-&ensp;|- 13100_4  
-&ensp;|- 13100_5  
-&ensp;|- 13100_6  
+### データダウンロードスクリプト download_plateau.py
+以下で東京都23区PLATEAU-CityGMLデータをダウンロードし展開します。
+> python download_plateau.py plateau-tokyo23ku-citygml-2020
 
+デフォルトのダウンロード/展開先は「CityGML2020/」ですが、コマンド引数 --basedir で指定することもできます。  
+今後ダウンロードアドレスが変わるかもしれませんが、変更になった場合は download_plateau.py 内のアドレスを変更してください。  
+以下のようなディレクトリ構成となります。  
+  
+CityGML2020/  
+&ensp;&ensp;|  
+&ensp;&ensp;plateau-tokyo23ku-citygml-2020/&ensp;&ensp;　← appviewerの-pathsで指定するパス  
+&ensp;&ensp;&ensp;&ensp;|  
+&ensp;&ensp;&ensp;&ensp;archive/  
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;*.zip, *.7z, ..  
+&ensp;&ensp;&ensp;&ensp;codelists/  
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;*.xml, ..  
+&ensp;&ensp;&ensp;&ensp;metadata/  
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;*.xml, ..  
+&ensp;&ensp;&ensp;&ensp;specification/  
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;*.png, ..  
+&ensp;&ensp;&ensp;&ensp;udx/  
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;bldg/,brid/,dem/,frm/,luse/,tran/, ..  
 
 ## ビューアアプリ appviewer の使い方
+以降のコマンド実行で、上記PLATEAUデータの場所をコマンド引数 -paths で指定する必要があります。  
+例： -paths CityGML2020/plateau-tokyo23ku-citygml-2020  
+または、appviewerはデフォルトでパス path_to_citygml を参照するため、リンクを作成することで -paths の指定が不要になります。
+> ln -s CityGML2020/plateau-tokyo23ku-citygml-2020  path_to_citygml
+
 1. 区画番号(メッシュコード)一覧を表示します。  
 >python appviewer.py -cmd locations  
 
-以下が表示されます。CityGMLへのパスが誤っていると異なります。パスはコマンド引数 -paths で指定することも可能です。  
+以下が表示されます。  
 
->locations:  [533925, 533926, 533934, 533935, 533936, 533937, 533944, 533945, 533946, 533947, 533954, 533955, 533956, 533957]  
+>locations:  [533925, 533926, 533934, 533935, 533936, 533937, 533944, 533945, 533946, 533947, 533954, 533955, 533956, 533957]
   
   
 2. 区画番号 533925 の、建物(bldg)・道路(tran)・地面(dem) を表示します。-locを指定しなければ全区画を対象としますが時間がかかります。  
@@ -147,7 +160,7 @@ args を必要に応じて修正します。
 
 ```
 import plateaupy  
-pl = plateaupy.plparser(paths=['../CityGML_01','../CityGML_02'])  
+pl = plateaupy.plparser(paths=['path_to_citygml'])  
 ```
 
 * pl.locations にメッシュコード一覧がリストとして格納されます。

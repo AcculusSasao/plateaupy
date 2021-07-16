@@ -32,10 +32,10 @@ class plparser:
 	def addPath(self,path):	# path to CityGML
 		print('search ' + path)
 		# now, static path
-		path_bldg = path + '/13100*/udx/bldg'
-		path_dem  = path + '/13100*/udx/dem'
-		path_luse = path + '/13100*/udx/luse'
-		path_tran = path + '/13100*/udx/tran'
+		path_bldg = path + '/udx/bldg'
+		path_dem  = path + '/udx/dem'
+		path_luse = path + '/udx/luse'
+		path_tran = path + '/udx/tran'
 		val = sorted(glob.glob(path_bldg+'/*.gml'))
 		print('  bldg : ',len(val), 'files')
 		self.filenames_bldg.extend( val )
@@ -56,7 +56,7 @@ class plparser:
 		locations.extend( [plobj.getLocationFromFilename( filename, True ) for filename in self.filenames_tran] )
 		self.locations = sorted(list(set(locations)))
 		# parse codelists
-		dir_codelists = glob.glob( path + '/13100*/codelists/' )
+		dir_codelists = glob.glob( path + '/codelists/' )
 		if len(dir_codelists) > 0:
 			self.codelists = scan_codelists(dir_codelists[0])
 
