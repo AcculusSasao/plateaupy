@@ -84,6 +84,13 @@ class plobj:
 	@staticmethod
 	def getCacheFilename(cachedir, filename):
 		return cachedir + '/' + os.path.splitext(os.path.basename(filename))[0]
+	@staticmethod
+	def removeNoneKeyFromDic(nsmap):
+		newnsmap = dict()
+		for k,v in nsmap.items():
+			if k is not None:
+				newnsmap[k]=v
+		return newnsmap
 
 	def __init__(self):
 		self.kindstr = 'obj'
@@ -100,10 +107,11 @@ class plobj:
 		tree = etree.parse(filename)
 		root = tree.getroot()
 		# lowerCorner, upperCorner
-		vals = tree.xpath('/core:CityModel/gml:boundedBy/gml:Envelope/gml:lowerCorner', namespaces=root.nsmap)
+		nsmap = self.removeNoneKeyFromDic(root.nsmap)
+		vals = tree.xpath('/core:CityModel/gml:boundedBy/gml:Envelope/gml:lowerCorner', namespaces=nsmap)
 		if len(vals) > 0:
 			self.lowerCorner = str2floats(vals[0])
-		vals = tree.xpath('/core:CityModel/gml:boundedBy/gml:Envelope/gml:upperCorner', namespaces=root.nsmap)
+		vals = tree.xpath('/core:CityModel/gml:boundedBy/gml:Envelope/gml:upperCorner', namespaces=nsmap)
 		if len(vals) > 0:
 			self.upperCorner = str2floats(vals[0])
 		return tree, root

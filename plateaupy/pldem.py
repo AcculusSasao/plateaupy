@@ -16,11 +16,12 @@ class pldem(plobj):
 		
 	def loadFile(self,filename, options=ploptions(), num_search_coincident=100):
 		tree, root = super().loadFile(filename)
+		nsmap = self.removeNoneKeyFromDic(root.nsmap)
 		lt,rb = convertMeshcodeToLatLon( os.path.basename(filename).split('_')[0] )
 		#center = (np.array(lt)+np.array(rb))/2
 		center = ( lt[0]*0.8+rb[0]*0.2, lt[1]*0.2+rb[1]*0.8 )
 		# posLists
-		vals = tree.xpath('/core:CityModel/core:cityObjectMember/dem:ReliefFeature/dem:reliefComponent/dem:TINRelief/dem:tin/gml:TriangulatedSurface/gml:trianglePatches/gml:Triangle/gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
+		vals = tree.xpath('/core:CityModel/core:cityObjectMember/dem:ReliefFeature/dem:reliefComponent/dem:TINRelief/dem:tin/gml:TriangulatedSurface/gml:trianglePatches/gml:Triangle/gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap)
 		self.posLists = np.array([str2floats(v).reshape((-1,3)) for v in vals])
 		if options.bHeightZero:
 			self.posLists[:,:,2] = 0

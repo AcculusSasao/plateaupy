@@ -20,11 +20,12 @@ class pltran(plobj):
 
 	def loadFile(self,filename, options=ploptions(),dem=None):
 		tree, root = super().loadFile(filename)
+		nsmap = self.removeNoneKeyFromDic(root.nsmap)
 		lt,rb = convertMeshcodeToLatLon( os.path.basename(filename).split('_')[0] )
 		#center = (np.array(lt)+np.array(rb))/2
 		center = ( lt[0]*0.8+rb[0]*0.2, lt[1]*0.2+rb[1]*0.8 )
 		# posLists
-		vals = tree.xpath('/core:CityModel/core:cityObjectMember/tran:Road/tran:lod1MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
+		vals = tree.xpath('/core:CityModel/core:cityObjectMember/tran:Road/tran:lod1MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap)
 		self.posLists = [str2floats(v).reshape((-1,3)) for v in vals]
 		if options.bHeightZero:
 			for x in self.posLists:

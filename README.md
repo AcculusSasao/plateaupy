@@ -52,6 +52,9 @@ Python3 (Python 3.6.4, Ubuntu18.04 で確認)
 ### データダウンロードスクリプト download_plateau.py
 以下で東京都23区PLATEAU-CityGMLデータをダウンロードし展開します。
 > python download_plateau.py plateau-tokyo23ku-citygml-2020
+  
+第１引数(データセット名)の文字列はヘルプで一覧を確認できます。文字列ではなくインデックス番号 0~ を指定することもできます。  
+> python download_plateau.py -h
 
 デフォルトのダウンロード/展開先は「CityGML2020/」ですが、コマンド引数 --basedir で指定することもできます。  
 今後ダウンロードアドレスが変わるかもしれませんが、変更になった場合は download_plateau.py 内のアドレスを変更してください。  

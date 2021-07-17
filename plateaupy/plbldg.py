@@ -11,6 +11,7 @@ import sys
 import os
 import cv2
 from lxml import etree
+import lxml
 
 _floorheight = 2	# fixed value, the height of 1 floor in meter.
 
@@ -82,65 +83,70 @@ class plbldg(plobj):
 
 	def loadFile(self,filename, options=ploptions()):
 		tree, root = super().loadFile(filename)
+		nsmap = self.removeNoneKeyFromDic(root.nsmap)
 
 		# scan appearanceMember
 		partex = []
-		for app in tree.xpath('/core:CityModel/app:appearanceMember/app:Appearance/app:surfaceDataMember/app:ParameterizedTexture', namespaces=root.nsmap):
+		for app in tree.xpath('/core:CityModel/app:appearanceMember/app:Appearance/app:surfaceDataMember/app:ParameterizedTexture', namespaces=nsmap):
 			par = appParameterizedTexture()
-			for at in app.xpath('app:imageURI', namespaces=root.nsmap):
+			for at in app.xpath('app:imageURI', namespaces=nsmap):
 				par.imageURI = at.text
-			for at in app.xpath('app:target', namespaces=root.nsmap):
+			for at in app.xpath('app:target', namespaces=nsmap):
 				uri = at.attrib['uri']
-				par.targets[uri] = np.array([str2floats(v).reshape((-1,2)) for v in at.xpath('app:TexCoordList/app:textureCoordinates', namespaces=root.nsmap)])
+				par.targets[uri] = np.array([str2floats(v).reshape((-1,2)) for v in at.xpath('app:TexCoordList/app:textureCoordinates', namespaces=nsmap)])
 			partex.append(par)
 
 		# scan cityObjectMember
-		blds = tree.xpath('/core:CityModel/core:cityObjectMember/bldg:Building', namespaces=root.nsmap)
+		blds = tree.xpath('/core:CityModel/core:cityObjectMember/bldg:Building', namespaces=nsmap)
 		for bld in blds:
 			b = Building()
 			# gml:id
-			b.id = bld.attrib['{'+root.nsmap['gml']+'}id']
+			b.id = bld.attrib['{'+nsmap['gml']+'}id']
 			# stringAttribute
-			stringAttributes = bld.xpath('gen:stringAttribute', namespaces=root.nsmap)
+			stringAttributes = bld.xpath('gen:stringAttribute', namespaces=nsmap)
 			for at in stringAttributes:
 				b.attr[at.attrib['name']] = at.getchildren()[0].text
 			# genericAttributeSet
-			genericAttributeSets = bld.xpath('gen:genericAttributeSet', namespaces=root.nsmap)
+			genericAttributeSets = bld.xpath('gen:genericAttributeSet', namespaces=nsmap)
 			for at in genericAttributeSets:
 				vals = dict()
 				for ch in at.getchildren():
 					vals[ ch.attrib['name'] ] = ch.getchildren()[0].text
 				b.attr[at.attrib['name']] = vals
 			# usage
-			for at in bld.xpath('bldg:usage', namespaces=root.nsmap):
+			for at in bld.xpath('bldg:usage', namespaces=nsmap):
 				b.usage = at.text
 			# measuredHeight
-			for at in bld.xpath('bldg:measuredHeight', namespaces=root.nsmap):
+			for at in bld.xpath('bldg:measuredHeight', namespaces=nsmap):
 				b.measuredHeight = at.text
 			# storeysAboveGround
-			for at in bld.xpath('bldg:storeysAboveGround', namespaces=root.nsmap):
+			for at in bld.xpath('bldg:storeysAboveGround', namespaces=nsmap):
 				b.storeysAboveGround = at.text
 			# storeysBelowGround
-			for at in bld.xpath('bldg:storeysBelowGround', namespaces=root.nsmap):
+			for at in bld.xpath('bldg:storeysBelowGround', namespaces=nsmap):
 				b.storeysBelowGround = at.text
 			# address
-			for at in bld.xpath('bldg:address/core:Address/core:xalAddress/xAL:AddressDetails/xAL:Address', namespaces=root.nsmap):
-				b.address = at.text
+			try:	# there are 2 names: 'xAL' and 'xal'..
+				for at in bld.xpath('bldg:address/core:Address/core:xalAddress/xAL:AddressDetails/xAL:Address', namespaces=nsmap):
+					b.address = at.text
+			except lxml.etree.XPathEvalError as e:
+				for at in bld.xpath('bldg:address/core:Address/core:xalAddress/xal:AddressDetails/xal:Address', namespaces=nsmap):
+					b.address = at.text
 			# buildingDetails
-			for at in bld.xpath('uro:buildingDetails/uro:BuildingDetails', namespaces=root.nsmap):
+			for at in bld.xpath('uro:buildingDetails/uro:BuildingDetails', namespaces=nsmap):
 				for ch in at.getchildren():
 					tag = ch.tag
 					tag = tag[ tag.rfind('}')+1: ]
 					b.buildingDetails[tag] = ch.text
 			# extendedAttribute
-			for at in bld.xpath('uro:extendedAttribute/uro:KeyValuePair', namespaces=root.nsmap):
+			for at in bld.xpath('uro:extendedAttribute/uro:KeyValuePair', namespaces=nsmap):
 				ch = at.getchildren()
 				b.extendedAttribute[ch[0].text] = ch[1].text
 			# lod0RoofEdge
-			vals = bld.xpath('bldg:lod0RoofEdge/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
+			vals = bld.xpath('bldg:lod0RoofEdge/gml:MultiSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap)
 			b.lod0RoofEdge = [str2floats(v).reshape((-1,3)) for v in vals]
 			# lod1Solid
-			vals = bld.xpath('bldg:lod1Solid/gml:Solid/gml:exterior/gml:CompositeSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
+			vals = bld.xpath('bldg:lod1Solid/gml:Solid/gml:exterior/gml:CompositeSurface/gml:surfaceMember/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap)
 			b.lod1Solid = [str2floats(v).reshape((-1,3)) for v in vals]
 			minheight = 0
 			if options.bHeightZero:
@@ -158,9 +164,9 @@ class plbldg(plobj):
 			# lod2Solid
 			#  nothing to do for parsing <bldg:lod2Solid>
 			# lod2MultiSurface : Ground, Roof, Wall
-			for bb in bld.xpath('bldg:boundedBy/bldg:GroundSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=root.nsmap):
-				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
-				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
+			for bb in bld.xpath('bldg:boundedBy/bldg:GroundSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=nsmap):
+				polyid = '#' + bb.attrib['{'+nsmap['gml']+'}id']
+				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
 				if options.bHeightZero:
 					if minheight == 0:
@@ -182,9 +188,9 @@ class plbldg(plobj):
 						b.partex = app
 					#elif b.partex.imageURI != app.imageURI:
 					#	print('error')
-			for bb in bld.xpath('bldg:boundedBy/bldg:RoofSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=root.nsmap):
-				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
-				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
+			for bb in bld.xpath('bldg:boundedBy/bldg:RoofSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=nsmap):
+				polyid = '#' + bb.attrib['{'+nsmap['gml']+'}id']
+				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
 				if options.bHeightZero:
 					for x in surf:
@@ -196,9 +202,9 @@ class plbldg(plobj):
 						b.partex = app
 					#elif b.partex.imageURI != app.imageURI:
 					#	print('error')
-			for bb in bld.xpath('bldg:boundedBy/bldg:WallSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=root.nsmap):
-				polyid = '#' + bb.attrib['{'+root.nsmap['gml']+'}id']
-				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=root.nsmap)
+			for bb in bld.xpath('bldg:boundedBy/bldg:WallSurface/bldg:lod2MultiSurface/gml:MultiSurface/gml:surfaceMember/gml:Polygon', namespaces=nsmap):
+				polyid = '#' + bb.attrib['{'+nsmap['gml']+'}id']
+				vals = bb.xpath('gml:exterior/gml:LinearRing/gml:posList', namespaces=nsmap)
 				surf = [str2floats(v).reshape((-1,3)) for v in vals]
 				if options.bHeightZero:
 					for x in surf:
