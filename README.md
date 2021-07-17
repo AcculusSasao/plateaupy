@@ -210,6 +210,21 @@ while True:
 * earcut-python  
 https://github.com/joshuaskelly/earcut-python  
 
+# 各都市の表示例
+大阪 513573  
+![plateaupy](doc/Osaka_513573.png)  
+大阪 523503  
+![plateaupy](doc/Osaka_523503.png)  
+横浜 533915  
+![plateaupy](doc/Yokohama_533915.png)  
+川崎 533925  
+![plateaupy](doc/Kawasaki_533925.png)  
+横須賀 523975  
+![plateaupy](doc/Yokosuka_523975.png)  
+箱根 523960  
+![plateaupy](doc/Hakone_523960.png)  
+
+
 ## Appendix : ハッカソンで開発した作品「都市SYM」
 
 [![PLATEAU 3D people flow](http://img.youtube.com/vi/2o--uUFSiZ8/0.jpg)](http://www.youtube.com/watch?v=2o--uUFSiZ8 "PLATEAU 3D people flow")
