@@ -148,9 +148,13 @@ def extract(url,dstpath):
 	print('  '+cmd)
 	subprocess.run(cmd,shell=True)
 	return True
-#def copy_files(url,dstpath):
-#	cmd='cp -a {} {}'.format(url,dstpath)
-#	subprocess.run(cmd,shell=True)
+def copy_files(url,dstpath):
+	cmd='cp -a {} {}'.format(url,dstpath)
+	print('  '+cmd)
+	subprocess.run(cmd,shell=True)
+def copy_tree_(url,dstpath):
+	copy_tree(url,dstpath)
+	print('  copy_tree {} {}'.format(url,dstpath))
 
 basedir = args.basedir
 ardir = 'archive'
@@ -207,13 +211,31 @@ for db in dbs:
 				extract(_ardir+os.path.basename(xx),_tmpdir)
 				tmpfiles = glob.glob(_tmpdir+'/*')
 				if 'udx' in tmpfiles:
-					copy_tree( _tmpdir, _alldir )
+					copy_tree_( _tmpdir, _alldir )
 					#for yy in tmpfiles:
 					#	copy_files( yy, _alldir )
 				elif len(tmpfiles)>0 and os.path.exists(tmpfiles[0]+'/udx'):
-					copy_tree( tmpfiles[0], _alldir )
+					copy_tree_( tmpfiles[0], _alldir )
 					#for yy in glob.glob(tmpfiles[0]+'/*'):
 					#	copy_files( yy, _alldir )
 				else:
-					print('error! unknown dir structure:', tmpfiles)
+					bFound = False
+					for yy in tmpfiles:
+						if os.path.splitext(yy)[1] == '.zip' or os.path.splitext(yy)[1] == '.7z':
+							extract(yy, _tmpdir)
+					for tt in ['codelists','metadata','specification','udx']:
+						for zz in glob.glob(_tmpdir+'/**/'+tt,recursive=True):
+							copy_tree_(zz,_alldir+'/'+tt)
+							bFound = True
+					if not bFound:
+						for tt in ['bldg','tran','luse','urf','dem','fld','tnm','lsld','brid','frn']:
+							for zz in glob.glob(_tmpdir+'/**/'+tt,recursive=True):
+								copy_files(zz,_udxdir)
+								bFound = True
+					if not bFound:
+						print('\nerror! unknown dir structure:', tmpfiles)
+				for yy in glob.glob(_udxdir+'**/*.zip',recursive=True):
+					extract(yy, os.path.dirname(yy))
+				for yy in glob.glob(_udxdir+'**/*.7z',recursive=True):
+					extract(yy, os.path.dirname(yy))
 			shutil.rmtree(_tmpdir)
