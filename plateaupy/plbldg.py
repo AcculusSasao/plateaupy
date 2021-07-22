@@ -93,7 +93,14 @@ class plbldg(plobj):
 				par.imageURI = at.text
 			for at in app.xpath('app:target', namespaces=nsmap):
 				uri = at.attrib['uri']
-				par.targets[uri] = np.array([str2floats(v).reshape((-1,2)) for v in at.xpath('app:TexCoordList/app:textureCoordinates', namespaces=nsmap)])
+				colist = [str2floats(v).reshape((-1,2)) for v in at.xpath('app:TexCoordList/app:textureCoordinates', namespaces=nsmap)]
+				maxnum = max(map(lambda x:x.shape[0],colist))
+				for cidx,co in enumerate(colist):
+					last = co[-1].reshape(-1,2)
+					num = maxnum - co.shape[0]
+					if num > 0:
+						colist[cidx] = np.append(co,np.tile(co[-1].reshape(-1,2),(num,1)),axis=0)
+				par.targets[uri] = np.array(colist)
 			partex.append(par)
 
 		# scan cityObjectMember
