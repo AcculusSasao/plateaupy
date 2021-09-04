@@ -46,7 +46,8 @@ datasets = [
 	{	'name':	'plateau-27100-osaka-shi-2020',
 		'url' : 'https://www.geospatial.jp/ckan/dataset/plateau-27100-osaka-shi-2020',
 		'citygml_all': [
-			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/27100_osaka-shi_citygml_2.zip',
+			#'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/27100_osaka-shi_citygml_2.zip',
+			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/27100_osaka-shi_citygml3.zip',
 		],
 		'specs': [
 			'https://www.geospatial.jp/ckan/dataset/45719509-717d-4866-a191-cb9e07cbe2a0/resource/1352e404-237b-4d8e-b6cc-5866be50ad13/download/27100osaka-shicatalog.xlsx',
@@ -56,7 +57,8 @@ datasets = [
 		'name':	'plateau-14100-yokohama-city-2020',
 		'url' :	'https://www.geospatial.jp/ckan/dataset/plateau-14100-yokohama-city-2020',
 		'citygml_all': [
-			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14100_yokohama-shi_citygml_2.zip',
+			#'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14100_yokohama-shi_citygml_2.zip',
+			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14100_yokohama-shi_citygml3.zip',
 		],
 		'specs': [
 			'https://www.geospatial.jp/ckan/dataset/6e445bad-43ab-4a89-ac4d-6dcdbd769608/resource/8c947eff-e4f6-4e8e-a6b7-d4765ce1ca26/download/14100yokohama-shicatalog.xlsx',
@@ -66,7 +68,8 @@ datasets = [
 		'name':	'plateau-14130-kawasaki-shi-2020',
 		'url' :	'https://www.geospatial.jp/ckan/dataset/plateau-14130-kawasaki-shi-2020',
 		'citygml_all': [
-			'https://gic-plateau.s3-ap-northeast-1.amazonaws.com/2020/14130_kawasaki-shi_CityGML.zip',
+			#'https://gic-plateau.s3-ap-northeast-1.amazonaws.com/2020/14130_kawasaki-shi_CityGML.zip',
+			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14130_kawasaki-shi_CityGML2.zip',
 		],
 		'specs': [
 			'https://www.geospatial.jp/ckan/dataset/b7d8c630-05ef-4fbd-84e7-96a132204e3f/resource/32cb50b4-0085-47b0-be16-9d122b6e245f/download/14130kawasaki-shicatalog.xlsx',
@@ -76,7 +79,8 @@ datasets = [
 		'name':	'plateau-14201-yokosuka-shi-2020',
 		'url' :	'https://www.geospatial.jp/ckan/dataset/plateau-14201-yokosuka-shi-2020',
 		'citygml_all': [
-			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14201_yokosuka-shi_citygml.zip',
+			#'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14201_yokosuka-shi_citygml.zip',
+			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14201_yokosuka-shi_citygml2.zip',
 		],
 		'specs': [
 			'https://www.geospatial.jp/ckan/dataset/21e5d06c-442d-406c-be99-c376e80aee37/resource/4b75ee2a-8283-4680-af53-bfd6fbc4f434/download/14201-yokosuka-shicatalog.xlsx',
@@ -86,7 +90,8 @@ datasets = [
 		'name':	'plateau-14382-hakone-machi-2020',
 		'url' :	'https://www.geospatial.jp/ckan/dataset/plateau-14382-hakone-machi-2020',
 		'citygml_all': [
-			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14382_hakone-machi_CityGML_3.zip',
+			#'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14382_hakone-machi_CityGML_3.zip',
+			'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/14382_hakone-machi_CityGML4.zip',
 		],
 		'specs': [
 			'https://www.geospatial.jp/ckan/dataset/32410073-80ac-4cb0-849c-bad92e83ef69/resource/f5b37e14-8ba8-44f1-b32c-8f97ea640203/download/14382hakone-machicatalog.xlsx',
